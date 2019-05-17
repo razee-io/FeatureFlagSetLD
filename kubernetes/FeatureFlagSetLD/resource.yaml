@@ -30,7 +30,7 @@ items:
         spec:
           serviceAccountName: kapitan-sa
           containers:
-          - image: "quay.io/razee/featureflagsetld:{{TRAVIS_COMMIT}}"
+          - image: "quay.io/razee/featureflagsetld:{{TRAVIS_TAG}}"
             resources:
               limits:
                 memory: 200Mi
