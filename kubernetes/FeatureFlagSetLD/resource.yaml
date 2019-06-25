@@ -6,6 +6,7 @@ metadata:
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
     razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
     version: "{{TRAVIS_COMMIT}}"
+type: array
 items:
   - apiVersion: apps/v1
     kind: Deployment
