@@ -40,9 +40,10 @@ spec:
 `.spec.identity`
 
 Specifying the identity attribute will give the FeatureFlagSetLD cluster specific
-data to send to LaunchDarkly for rule evaluation. This allows to have unique rules,
-based on cluster data, return different values. eg. cluster data `type: dev` could
-match rules such as `IF 'type' IS ONE OF 'dev' SERVE 'some new feature'`
+data to send to LaunchDarkly for rule evaluation. This allows you to have unique
+rules, based on cluster data, return different values.
+eg. cluster data `type: dev` could match rules such as
+`IF 'type' IS ONE OF 'dev' SERVE 'some new feature'`
 
 - Schema:
   - oneOf:
