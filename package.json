@@ -43,8 +43,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@razee/kapitan-core": "0.0.2",
-    "@razee/kubernetes-util": "0.0.2",
+    "@razee/kapitan-core": "0.2.2",
+    "@razee/kubernetes-util": "0.0.4",
     "bunyan": "^1.8.12",
     "ldclient-node": "^5.8.0",
     "object-path": "^0.11.4"
@@ -52,9 +52,9 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "dockerlint": "^0.3.9",
-    "eslint": "^5.10.0",
-    "markdownlint-cli": "^0.14.1",
-    "mocha": "^5.2.0",
+    "eslint": "^6.1.0",
+    "markdownlint-cli": "^0.17.0",
+    "mocha": "^6.2.0",
     "nock": "^10.0.6",
     "npm-check-updates": "^3.1.10",
     "npm-run-all": "^4.1.5",

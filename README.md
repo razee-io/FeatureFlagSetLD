@@ -1,6 +1,7 @@
 # FeatureFlagSetLD
 
 [![Build Status](https://travis-ci.com/razee-io/FeatureFlagSetLD.svg?branch=master)](https://travis-ci.com/razee-io/FeatureFlagSetLD)
+[![Greenkeeper badge](https://badges.greenkeeper.io/razee-io/FeatureFlagSetLD.svg)](https://greenkeeper.io/)
 ![GitHub](https://img.shields.io/github/license/razee-io/FeatureFlagSetLD.svg?color=success)
 
 FeatureFlagSetLD is a resource used to fetch feature flag values, evaluated based
@@ -57,6 +58,7 @@ eg. cluster data `type: dev` could match rules such as
 
 eg.
 
+```yaml
         identity: "<ConfigMap name>"
 
         identity:
@@ -67,6 +69,7 @@ eg.
             configMapKeyRef:
               name: "<ConfigMap name>"
               key: "<key within ConfigMap>"
+```
 
 ### Managed Resource Labels
 
