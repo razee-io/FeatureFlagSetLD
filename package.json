@@ -43,7 +43,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@razee/kapitan-core": "0.2.2",
+    "@razee/kapitan-core": "0.2.3",
     "@razee/kubernetes-util": "0.0.4",
     "bunyan": "^1.8.12",
     "ldclient-node": "^5.8.0",
