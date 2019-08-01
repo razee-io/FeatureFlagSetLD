@@ -31,7 +31,8 @@ async function main() {
       kubeResourceMeta: resourceMeta,
       factory: Controller,
       kubeClass: kc,
-      logger: log
+      logger: log,
+      livenessInterval:true
     };
     new EventHandler(params);
   } else {
