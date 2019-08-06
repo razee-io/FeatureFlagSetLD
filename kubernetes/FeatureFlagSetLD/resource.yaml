@@ -46,7 +46,7 @@ items:
                 command:
                 - sh/liveness.sh
               initialDelaySeconds: 30
-              periodSeconds: 300
+              periodSeconds: 150
               timeoutSeconds: 30
               failureThreshold: 1
 
