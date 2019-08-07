@@ -12,7 +12,6 @@ items:
     kind: Deployment
     metadata:
       name: featureflagsetld-controller
-      namespace: razee
       annotations:
         razee.io/git-repo: "{{{GIT_REMOTE}}}"
         razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
