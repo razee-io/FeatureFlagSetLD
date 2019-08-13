@@ -106,6 +106,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       let idObject = {};
       for (var i = 0; i < identity.length; i++) {
         let name;
+        let namespace;
         let key;
         let type;
 
@@ -113,12 +114,13 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
           name = identity[i];
         } else if (objectPath.has(identity[i], 'valueFrom.configMapKeyRef')) {
           name = objectPath.get(identity[i], 'valueFrom.configMapKeyRef.name');
+          namespace = objectPath.get(identity[i], 'valueFrom.configMapKeyRef.namespace', this.namespace);
           key = objectPath.get(identity[i], 'valueFrom.configMapKeyRef.key');
           type = objectPath.get(identity[i], 'valueFrom.configMapKeyRef.type');
         }
 
         if (name) {
-          let identityCM = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${this.namespace}/configmaps/${name}`, json: true });
+          let identityCM = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${namespace}/configmaps/${name}`, json: true });
           let identityData;
           if (key) {
             identityData = objectPath.get(identityCM, ['data', key]);
