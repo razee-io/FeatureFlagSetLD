@@ -67,9 +67,39 @@ eg.
         identity:
         - valueFrom:
             configMapKeyRef:
-              name: "<ConfigMap name>"
-              key: "<key within ConfigMap>"
+              name: "<ConfigMap name>" # required
+              key: "<key within ConfigMap>" # optional
+              namespace: "<ConfigMap namespace>" # optional
+              type: "json" # optional
 ```
+
+#### Identity valueFrom
+
+`.spec.identity[].valueFrom.configMapKeyRef`
+
+If you need to specify a ConfigMap as the identity, but need to specify extra
+lookup details, this is how you would do it.
+
+- Schema:
+  - type: object
+    - required: [name]
+    - optional: [namespace, key, type]
+
+Optional field details:
+
+- namespace:
+  - Default: `this.namespace`
+  - Usage: specified specific namespace to lookup ConfigMap from
+- key
+  - Default: `undefined`
+  - Usage: specify single key from ConfigMap to use in identity. if left undefined,
+  entire ConfigMap will be part of identity.
+- type
+  - Default: string
+  - options: ['json']
+  - Usage: when you have a stringified JSON object in a ConfigMap that you want
+  to use as your identity, specifying this will parse the JSON and use all the items
+  in the JSON as part of the identity.
 
 ### Managed Resource Labels
 
