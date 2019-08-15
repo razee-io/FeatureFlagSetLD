@@ -17,6 +17,7 @@
 const objectPath = require('object-path');
 const LaunchDarkly = require('ldclient-node');
 const { Watchman } = require('@razee/kubernetes-util');
+const hash = require('object-hash');
 
 const { BaseController } = require('@razee/kapitan-core');
 
@@ -37,10 +38,12 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       let secretKey = objectPath.get(sdkkey, 'valueFrom.secretKeyRef.key');
       sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
     }
-    this._sdkkey = sdkkey;
     if (!sdkkey) {
       throw Error('spec.sdk-key must be defined');
     }
+    //let sdkkeyhash = hash(sdkkey);
+    this._sdkkey = sdkkey;
+
 
     let client;
     if (clients[sdkkey]) {
@@ -96,7 +99,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async _getSecretData(name, key, ns) {
-    if (!name || !key || !ns) {
+    if (!name || !key) {
       return;
     }
     let res = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${ns || this.namespace}/secrets/${name}`, json: true });
