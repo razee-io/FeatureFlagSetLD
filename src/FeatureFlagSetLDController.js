@@ -52,7 +52,9 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     let namespaceID = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${this.namespace}`, json: true });
     namespaceID = objectPath.get(namespaceID, 'metadata.uid');
     let identity = await this.assembleIdentity();
-    let variation = await client.allFlagsState({ key: namespaceID, custom: identity });
+    let user = { key: namespaceID, custom: identity };
+    client.identify(user);
+    let variation = await client.allFlagsState(user);
 
     let patchObject = {
       metadata: {
