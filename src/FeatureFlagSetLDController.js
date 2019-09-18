@@ -18,14 +18,14 @@ const objectPath = require('object-path');
 const LaunchDarkly = require('ldclient-node');
 const { Watchman } = require('@razee/kubernetes-util');
 
-const { BaseController } = require('@razee/kapitan-core');
+const { BaseController } = require('@razee/razeedeploy-core');
 
 
 const clients = {};
 
 module.exports = class FeatureFlagSetLDController extends BaseController {
   constructor(params) {
-    params.finalizerString = params.finalizerString || 'client.featureflagset.kapitan.razee.io';
+    params.finalizerString = params.finalizerString || 'client.featureflagset.deploy.razee.io';
     super(params);
   }
 

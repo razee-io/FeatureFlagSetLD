@@ -1,12 +1,13 @@
 {
   "name": "FeatureFlagSetLD",
   "version": "0.0.0-dev",
-  "description": "Kapitan: component to pull feature flag values into a kubernetes environment",
+  "description": "Razee: component to pull feature flag values into a kubernetes environment",
   "main": "src/index.js",
   "keywords": [
     "kubernetes",
     "razee",
     "razeedash",
+    "razeedeploy",
     "download",
     "feature",
     "flag",
@@ -43,7 +44,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@razee/kapitan-core": "^0.4.6",
+    "@razee/razeedeploy-core": "^0.4.7",
     "@razee/kubernetes-util": "0.0.6",
     "bunyan": "^1.8.12",
     "ldclient-node": "^5.8.0",
