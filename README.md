@@ -108,9 +108,9 @@ Optional field details:
 `.spec.resources.metadata.labels[deploy.razee.io/Reconcile]`
 
 - DEFAULT: `true`
-  - A Razeedeploy resource (parent) will clean up a resources it applies (child) when
-either the child is no longer in the parent resource definition or the parent is
-deleted.
+  - A Razeedeploy resource (parent) will clean up a resources it applies (child)
+when either the child is no longer in the parent resource definition or the
+parent is deleted.
 - `false`
   - This behavior can be overridden when a child's resource definition has
 the label `deploy.razee.io/Reconcile=false`.
