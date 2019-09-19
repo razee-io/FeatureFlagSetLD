@@ -68,7 +68,7 @@ async function main() {
   const promises = [];
   promises.push(createClassicEventHandler(kc));
   promises.push(createNewEventHandler(kc));
-  return await Promise.allSettled(promises);
+  return await Promise.all(promises);
 }
 
 main().catch(e => log.error(e));
