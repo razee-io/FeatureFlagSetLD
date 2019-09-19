@@ -22,7 +22,7 @@ const log = require('./bunyan-api').createLogger(ControllerString);
 
 
 async function createClassicEventHandler(kc) {
-  let resultPromise;
+  let result;
   let resourceMeta = await kc.getKubeResourceMeta('kapitan.razee.io/v1alpha1', ControllerString, 'watch');
   if (resourceMeta) {
     const Controller = require(`./${ControllerString}Controller`);
@@ -34,16 +34,15 @@ async function createClassicEventHandler(kc) {
       livenessInterval:true,
       finalizerString: 'client.featureflagset.kapitan.razee.io'
     };
-    resultPromise = new EventHandler(params);
+    result = new EventHandler(params);
   } else {
-    resultPromise = Promise.resolve('kapitan.razee.io/v1alpha1 undefined');
     log.info(`Unable to find KubeResourceMeta for kapitan.razee.io/v1alpha1: ${ControllerString}`);
   }
-  return resultPromise;
+  return result;
 }
 
 async function createNewEventHandler(kc) {
-  let resultPromise;
+  let result;
   let resourceMeta = await kc.getKubeResourceMeta('deploy.razee.io/v1alpha1', ControllerString, 'watch');
   if (resourceMeta) {
     const Controller = require(`./${ControllerString}Controller`);
@@ -54,21 +53,20 @@ async function createNewEventHandler(kc) {
       logger: log,
       livenessInterval:true
     };
-    resultPromise = new EventHandler(params);
+    result = new EventHandler(params);
   } else {
-    resultPromise = Promise.reject('deploy.razee.io/v1alpha1 undefined');
     log.error(`Unable to find KubeResourceMeta for deploy.razee.io/v1alpha1: ${ControllerString}`);
   }
-  return resultPromise;
+  return result;
 }
 
 async function main() {
   log.info(`Running ${ControllerString}Controller.`);
   const kc = new KubeClass(kubeApiConfig);
-  const promises = [];
-  promises.push(createClassicEventHandler(kc));
-  promises.push(createNewEventHandler(kc));
-  return await Promise.all(promises);
+  const eventHandlers = [];
+  eventHandlers.push(createClassicEventHandler(kc));
+  eventHandlers.push(createNewEventHandler(kc));
+  return eventHandlers;
 }
 
 main().catch(e => log.error(e));
