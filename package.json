@@ -44,8 +44,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@razee/kubernetes-util": "0.0.7",
     "@razee/razeedeploy-core": "^0.4.7",
-    "@razee/kubernetes-util": "0.0.6",
     "bunyan": "^1.8.12",
     "ldclient-node": "^5.8.0",
     "object-path": "^0.11.4"
