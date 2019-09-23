@@ -20,11 +20,30 @@ const kubeApiConfig = KubeApiConfig();
 const ControllerString = 'FeatureFlagSetLD';
 const log = require('./bunyan-api').createLogger(ControllerString);
 
-async function main() {
-  log.info(`Running ${ControllerString}Controller.`);
 
-  const kc = new KubeClass(kubeApiConfig);
+async function createClassicEventHandler(kc) {
+  let result;
   let resourceMeta = await kc.getKubeResourceMeta('kapitan.razee.io/v1alpha1', ControllerString, 'watch');
+  if (resourceMeta) {
+    const Controller = require(`./${ControllerString}Controller`);
+    let params = {
+      kubeResourceMeta: resourceMeta,
+      factory: Controller,
+      kubeClass: kc,
+      logger: log,
+      livenessInterval:true,
+      finalizerString: 'client.featureflagset.kapitan.razee.io'
+    };
+    result = new EventHandler(params);
+  } else {
+    log.info(`Unable to find KubeResourceMeta for kapitan.razee.io/v1alpha1: ${ControllerString}`);
+  }
+  return result;
+}
+
+async function createNewEventHandler(kc) {
+  let result;
+  let resourceMeta = await kc.getKubeResourceMeta('deploy.razee.io/v1alpha1', ControllerString, 'watch');
   if (resourceMeta) {
     const Controller = require(`./${ControllerString}Controller`);
     let params = {
@@ -34,10 +53,20 @@ async function main() {
       logger: log,
       livenessInterval:true
     };
-    new EventHandler(params);
+    result = new EventHandler(params);
   } else {
-    log.error(`Unable to find KubeResourceMeta for kapitan.razee.io/v1alpha1: ${ControllerString}`);
+    log.error(`Unable to find KubeResourceMeta for deploy.razee.io/v1alpha1: ${ControllerString}`);
   }
+  return result;
+}
+
+async function main() {
+  log.info(`Running ${ControllerString}Controller.`);
+  const kc = new KubeClass(kubeApiConfig);
+  const eventHandlers = [];
+  eventHandlers.push(createClassicEventHandler(kc));
+  eventHandlers.push(createNewEventHandler(kc));
+  return eventHandlers;
 }
 
 main().catch(e => log.error(e));

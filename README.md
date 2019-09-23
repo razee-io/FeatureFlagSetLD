@@ -19,7 +19,7 @@ kubectl apply -f "https://github.com/razee-io/FeatureFlagSetLD/releases/latest/d
 ### Sample
 
 ```yaml
-apiVersion: kapitan.razee.io/v1alpha1
+apiVersion: deploy.razee.io/v1alpha1
 kind: FeatureFlagSetLD
 metadata:
   name: <name>
@@ -105,23 +105,23 @@ Optional field details:
 
 #### Reconcile
 
-`.spec.resources.metadata.labels[kapitan.razee.io/Reconcile]`
+`.spec.resources.metadata.labels[deploy.razee.io/Reconcile]`
 
 - DEFAULT: `true`
-  - A kapitan resource (parent) will clean up a resources it applies (child) when
-either the child is no longer in the parent resource definition or the parent is
-deleted.
+  - A Razeedeploy resource (parent) will clean up a resources it applies (child)
+when either the child is no longer in the parent resource definition or the
+parent is deleted.
 - `false`
   - This behavior can be overridden when a child's resource definition has
-the label `kapitan.razee.io/Reconcile=false`.
+the label `deploy.razee.io/Reconcile=false`.
 
 #### Resource Update Mode
 
-`.spec.resources.metadata.labels[kapitan.razee.io/mode]`
+`.spec.resources.metadata.labels[deploy.razee.io/mode]`
 
-Kapitan resources default to merge patching children. This behavior can be
+Razeedeploy resources default to merge patching children. This behavior can be
 overridden when a child's resource definition has the label
-`kapitan.razee.io/mode=<mode>`
+`deploy.razee.io/mode=<mode>`
 
 Mode options:
 

@@ -28,7 +28,7 @@ items:
             app: featureflagsetld-controller
           name: featureflagsetld-controller
         spec:
-          serviceAccountName: kapitan-sa
+          serviceAccountName: razeedeploy-sa
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -56,13 +56,13 @@ items:
     kind: CustomResourceDefinition
     metadata:
       # name must match the spec fields below, and be in the form: <plural>.<group>
-      name: featureflagsetsld.kapitan.razee.io
+      name: featureflagsetsld.deploy.razee.io
       annotations:
         razee.io/git-repo: "{{{GIT_REMOTE}}}"
         razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
     spec:
       # group name to use for REST API: /apis/<group>/<version>
-      group: kapitan.razee.io
+      group: deploy.razee.io
       # list of versions supported by this CustomResourceDefinition
       versions:
         - name: v1alpha1
