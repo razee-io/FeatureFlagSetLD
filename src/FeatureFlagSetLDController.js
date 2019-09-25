@@ -64,8 +64,8 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       },
       data: variation.allValues()
     };
-    let cont = await this.patchSelf(patchObject);
-    if (!cont) return;
+    let res = await this.patchSelf(patchObject);
+    objectPath.set(this.data, 'object', res); // save latest patch response
 
     if (!objectPath.get(clients, [sdkkey, 'watching'], false)) {
       client.on('update', async () => {
@@ -193,6 +193,17 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     });
     wm.watch();
     objectPath.set(clients, [this._sdkkey, 'connections', this.namespace, this.name, cmName], wm);
+  }
+
+  dataToHash(resource) {
+    // Override if you have other data as important.
+    // Changes to these sections allow modify event to proceed.
+    return {
+      labels: objectPath.get(resource, 'metadata.labels'),
+      spec: objectPath.get(resource, 'spec'),
+      FeatureFlagUpdateReceived: objectPath.get(resource, 'status.FeatureFlagUpdateReceived'),
+      IdentityUpdateReceived: objectPath.get(resource, 'status.IdentityUpdateReceived')
+    };
   }
 
   async finalizerCleanup() {
