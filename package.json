@@ -25,7 +25,7 @@
     "yamllint": "node_modules/.bin/yamllint .travis.yml kubernetes/FeatureFlagSetLD/resource.yaml",
     "markdownlint": "node_modules/.bin/markdownlint README.md docs/",
     "dockerlint": "node_modules/.bin/dockerlint Dockerfile",
-    "shellcheck": "shellcheck build/*.sh"
+    "shellcheck": "node_modules/.bin/shellcheck build/*.sh"
   },
   "repository": {
     "type": "git",
