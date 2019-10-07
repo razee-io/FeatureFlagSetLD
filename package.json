@@ -20,12 +20,12 @@
     "test": "nyc --reporter=html --all --reporter=text mocha ",
     "test:debug": "mocha --inspect-brk",
     "check-coverage": "nyc check-coverage --statements 0 --branches 0 --functions 0 --lines 0",
-    "lint": "node_modules/.bin/npm-run-all eslint yamllint markdownlint",
+    "lint": "node_modules/.bin/npm-run-all eslint yamllint markdownlint shellcheck",
     "eslint": "node_modules/.bin/eslint src/",
     "yamllint": "node_modules/.bin/yamllint .travis.yml kubernetes/FeatureFlagSetLD/resource.yaml",
     "markdownlint": "node_modules/.bin/markdownlint README.md docs/",
     "dockerlint": "node_modules/.bin/dockerlint Dockerfile",
-    "commit": "git-cz"
+    "shellcheck": "shellcheck build/*.sh"
   },
   "repository": {
     "type": "git",
@@ -48,7 +48,8 @@
     "@razee/razeedeploy-core": "^0.5.0",
     "bunyan": "^1.8.12",
     "ldclient-node": "^5.8.0",
-    "object-path": "^0.11.4"
+    "object-path": "^0.11.4",
+    "shellcheck": "^0.3.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
