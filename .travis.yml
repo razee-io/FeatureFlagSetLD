@@ -17,7 +17,7 @@ script:
   # Audit npm packages. Fail build whan a PR audit fails, otherwise report the vulnerability and proceed.
   - if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then npx audit-ci --low; else npx audit-ci --low || true; fi
   - npm run lint
-  - yamllint kubernetes/
+  - yamllint kubernetes/FeatureFlagSetLD/*.yaml
   - npm test
   - docker build --rm -t "quay.io/razee/featureflagsetld:${TRAVIS_COMMIT}" .
   - if [ -n "${TRAVIS_TAG}" ]; then docker tag quay.io/razee/featureflagsetld:${TRAVIS_COMMIT} quay.io/razee/featureflagsetld:${TRAVIS_TAG}; fi
