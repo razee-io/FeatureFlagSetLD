@@ -24,8 +24,7 @@
     "eslint": "node_modules/.bin/eslint src/",
     "yamllint": "node_modules/.bin/yamllint .travis.yml kubernetes/FeatureFlagSetLD/resource.yaml",
     "markdownlint": "node_modules/.bin/markdownlint README.md docs/",
-    "dockerlint": "node_modules/.bin/dockerlint Dockerfile",
-    "commit": "git-cz"
+    "dockerlint": "node_modules/.bin/dockerlint Dockerfile"
   },
   "repository": {
     "type": "git",
