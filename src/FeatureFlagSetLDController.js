@@ -125,7 +125,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       let idObject = {};
       for (var i = 0; i < identity.length; i++) {
         let name;
-        let namespace;
+        let namespace=this.namespace;
         let key;
         let type;
 
@@ -143,20 +143,24 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
           let identityData;
           if (key) {
             identityData = objectPath.get(identityCM, ['data', key]);
+            if (identityData) {
+              switch (type) {
+                case 'number':
+                  identityData = {[key]: Number(identityData)};
+                  break;
+                case 'boolean':
+                  identityData = {[key]: Boolean(identityData)};
+                  break;
+                case 'json':
+                  identityData = JSON.parse(identityData);
+                  break;
+                default:
+                  identityData = {[key]: identityData};
+                  break;
+              }
+            }
           } else {
             identityData = objectPath.get(identityCM, 'data', {});
-          }
-          if (type && identityData) {
-            switch (type) {
-              case 'number':
-                identityData = Number(identityData);
-                break;
-              case 'boolean':
-                identityData = Boolean(identityData);
-                break;
-              case 'json':
-                identityData = JSON.parse(identityData);
-            }
           }
           if (identityData) {
             Object.assign(idObject, identityData);
