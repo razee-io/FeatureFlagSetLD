@@ -30,19 +30,19 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async added() {
-    let sdkkey = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
-    if (typeof sdkkey == 'object') {
-      let secretName = objectPath.get(sdkkey, 'valueFrom.secretKeyRef.name');
-      let secretNamespace = objectPath.get(sdkkey, 'valueFrom.secretKeyRef.namespace', this.namespace);
-      let secretKey = objectPath.get(sdkkey, 'valueFrom.secretKeyRef.key');
+    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
+    if (typeof sdkkeyRef == 'object') {
+      let secretName = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.name');
+      let secretNamespace = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.namespace', this.namespace);
+      let secretKey = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.key');
       this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
     } else {
-      this._sdkkey = sdkkey;
+      this._sdkkey = sdkkeyRef;
     }
-    if (!sdkkey) {
+    if (!this._sdkkey) {
       throw Error('spec.sdk-key must be defined');
     }
-
+    let sdkkey=this._sdkkey;
     let client;
     if (clients[sdkkey]) {
       client = objectPath.get(clients, [sdkkey, 'client']);
