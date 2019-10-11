@@ -91,7 +91,25 @@ items:
               required: [sdk-key]
               properties:
                 sdk-key:
-                  type: string
+                  oneOf:
+                    - type: string
+                    - type: object
+                      required: [valueFrom]
+                      properties:
+                        valueFrom:
+                          type: object
+                          required: [secretKeyRef]
+                          properties:
+                            secretKeyRef:
+                              type: object
+                              required: [name, key]
+                              properties:
+                                name:
+                                  type: string
+                                key:
+                                  type: string
+                                namespace:
+                                  type: string
                 identity:
                   oneOf:
                     - type: string

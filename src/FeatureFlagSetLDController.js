@@ -30,11 +30,19 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async added() {
-    let sdkkey = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
-    this._sdkkey = sdkkey;
-    if (!sdkkey) {
+    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
+    if (typeof sdkkeyRef == 'object') {
+      let secretName = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.name');
+      let secretNamespace = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.namespace', this.namespace);
+      let secretKey = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.key');
+      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
+    } else {
+      this._sdkkey = sdkkeyRef;
+    }
+    if (!this._sdkkey) {
       throw Error('spec.sdk-key must be defined');
     }
+    let sdkkey = this._sdkkey;
 
     let client;
     if (clients[sdkkey]) {
@@ -87,6 +95,15 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       });
       objectPath.set(clients, [sdkkey, 'watching'], true);
     }
+  }
+
+  async _getSecretData(name, key, ns) {
+    if (!name || !key) {
+      return;
+    }
+    let res = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${ns || this.namespace}/secrets/${name}`, json: true });
+    let secret = Buffer.from(objectPath.get(res, ['data', key], ''), 'base64').toString();
+    return secret;
   }
 
   async assembleIdentity() {

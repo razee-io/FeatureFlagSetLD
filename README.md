@@ -25,7 +25,7 @@ metadata:
   name: <name>
   namespace: <namespace>
 spec:
-  sdk-key: "<launch_darkly_sdk_key>"
+  sdk-key: oneOf [launch_darkly_sdk_key string, valueFrom.secretKeyRef]
   identity: "<ConfigMap name>"
 ```
 
