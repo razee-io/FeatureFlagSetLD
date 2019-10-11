@@ -42,7 +42,8 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     if (!this._sdkkey) {
       throw Error('spec.sdk-key must be defined');
     }
-    let sdkkey=this._sdkkey;
+    let sdkkey = this._sdkkey;
+
     let client;
     if (clients[sdkkey]) {
       client = objectPath.get(clients, [sdkkey, 'client']);
