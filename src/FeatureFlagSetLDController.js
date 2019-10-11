@@ -125,7 +125,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       let idObject = {};
       for (var i = 0; i < identity.length; i++) {
         let name;
-        let namespace=this.namespace;
+        let namespace = this.namespace;
         let key;
         let type;
 
