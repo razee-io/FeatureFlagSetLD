@@ -27,6 +27,7 @@ metadata:
 spec:
   sdk-key: oneOf [launch_darkly_sdk_key string, valueFrom.secretKeyRef]
   identity: "<ConfigMap name>"
+  identity-key: "<key from identity to use as LD user key>"
 ```
 
 ### Required Fields
@@ -100,6 +101,17 @@ Optional field details:
   - Usage: when you have a stringified JSON object in a ConfigMap that you want
   to use as your identity, specifying this will parse the JSON and use all the items
   in the JSON as part of the identity.
+
+#### Identity-Key
+
+`.spec.identity-key`
+
+If you need to specify a specific key to use as the user key in LaunchDarkly, this
+allows you to identify the key in the identity ConfigMap to use.
+
+- Schema:
+  - type: string
+  - default: ffsld's namespace uid
 
 ### Managed Resource Labels
 
