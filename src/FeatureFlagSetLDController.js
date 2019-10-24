@@ -56,11 +56,20 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       objectPath.set(clients, [sdkkey, 'connections', this.namespace, this.name], {});
     }
 
-
-    let namespaceID = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${this.namespace}`, json: true });
-    namespaceID = objectPath.get(namespaceID, 'metadata.uid');
     let identity = await this.assembleIdentity();
-    let user = { key: namespaceID, custom: identity };
+    let identityKey = objectPath.get(this.data, ['object', 'spec', 'identity-key']);
+
+    let userID = objectPath.get(identity, [identityKey]);
+    if (!userID) {
+      if (identityKey) {
+        let msg = `Key '${identityKey}' not found in identity ConfigMap.. defaulting to Namespace UID.`;
+        this.log.warn(msg);
+        this.updateRazeeLogs('warn', { controller: 'FeatureFlagSetLD', warn: msg });
+      }
+      let namespace = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${this.namespace}`, json: true });
+      userID = objectPath.get(namespace, 'metadata.uid');
+    }
+    let user = { key: userID, custom: identity };
     client.identify(user);
     let variation = await client.allFlagsState(user);
 
@@ -146,16 +155,22 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
             if (identityData) {
               switch (type) {
                 case 'number':
-                  identityData = {[key]: Number(identityData)};
+                  identityData = {
+                    [key]: Number(identityData)
+                  };
                   break;
                 case 'boolean':
-                  identityData = {[key]: Boolean(identityData)};
+                  identityData = {
+                    [key]: Boolean(identityData)
+                  };
                   break;
                 case 'json':
                   identityData = JSON.parse(identityData);
                   break;
                 default:
-                  identityData = {[key]: identityData};
+                  identityData = {
+                    [key]: identityData
+                  };
                   break;
               }
             }
