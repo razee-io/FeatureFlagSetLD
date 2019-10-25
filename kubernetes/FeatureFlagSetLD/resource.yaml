@@ -28,6 +28,7 @@ items:
         metadata:
           labels:
             app: featureflagsetld-controller
+            razee/watch-resource: "lite"
           name: featureflagsetld-controller
         spec:
           serviceAccountName: razeedeploy-sa
