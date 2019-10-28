@@ -34,6 +34,14 @@ spec:
 
 - `.spec.sdk-key`
   - type: string
+  - or
+  - type: object
+    - valueFrom
+      - secretKeyRef:
+        - name
+          - type: string
+        - key
+          - type: string
 
 ## Features
 
