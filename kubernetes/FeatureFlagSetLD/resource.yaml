@@ -63,8 +63,6 @@ items:
     spec:
       # group name to use for REST API: /apis/<group>/<version>
       group: operator.razee.io
-      # prune unknown fields
-      preserveUnknownFields: false
       # list of versions supported by this CustomResourceDefinition
       versions:
         - name: v1alpha2
@@ -87,6 +85,8 @@ items:
       subresources:
         # status enables the status subresource.
         status: {}
+      # prune unknown fields
+      preserveUnknownFields: false
       validation:
         # openAPIV3Schema is the schema for validating custom objects.
         openAPIV3Schema:
@@ -95,11 +95,6 @@ items:
           properties:
             spec:
               type: object
-              properties:
-                testarr:
-                  type: array
-                  items:
-                    type: string
               allOf:
                 - oneOf:
                     - required: [sdkKey]
@@ -187,32 +182,31 @@ items:
                       items:
                         type: object
                         allOf:
-                          # all array items should either be 'value' or 'valueFrom'
-                          - oneOf:
-                            # if 'value', you may define:
-                            #   - neither 'optional' nor 'default'
-                            - required: [value]
-                              not:
-                                anyOf:
-                                  - required: [default]
-                                  - required: [optional]
-                            # if 'valueFrom', you may define:
-                            #   - neither 'optional' nor 'default'
-                            #   - 'optional' by itself
-                            #   - 'optional' and 'default' together (optional == true)
-                            - required: [valueFrom]
-                              oneOf:
-                                - not:
-                                    anyOf:
-                                      - required: [default]
-                                      - required: [optional]
-                                - required: [optional]
-                                  not:
-                                    required: [default]
-                                - required: [optional, default]
-                                  properties:
-                                    optional:
-                                      enum: [true]
+                          - # all array items should be oneOf ['value', 'valueFrom']
+                            oneOf:
+                              - required: [value]
+                                # if 'value', neither 'optional' nor 'default' may be used
+                                not:
+                                  anyOf:
+                                    - required: [default]
+                                    - required: [optional]
+                              - required: [valueFrom]
+                                # if 'valueFrom', you must define oneOf:
+                                oneOf:
+                                  - # neither 'optional' nor 'default' is used
+                                    not:
+                                      anyOf:
+                                        - required: [default]
+                                        - required: [optional]
+                                  - # 'optional' is used by itself
+                                    required: [optional]
+                                    not:
+                                      required: [default]
+                                  - # 'optional' and 'default' are used together IFF optional == true
+                                    required: [optional, default]
+                                    properties:
+                                      optional:
+                                        enum: [true]
                         properties:
                           optional:
                             type: boolean
