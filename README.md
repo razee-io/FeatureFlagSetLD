@@ -19,31 +19,120 @@ kubectl apply -f "https://github.com/razee-io/FeatureFlagSetLD/releases/latest/d
 ### Sample
 
 ```yaml
-apiVersion: deploy.razee.io/v1alpha1
+apiVersion: operator.razee.io/v1alpha2
 kind: FeatureFlagSetLD
 metadata:
   name: <name>
   namespace: <namespace>
 spec:
-  sdk-key: oneOf [launch_darkly_sdk_key string, valueFrom.secretKeyRef]
-  identity: "<ConfigMap name>"
-  identity-key: "<key from identity to use as LD user key>"
+  sdkKey: sdk-key-from-LaunchDarky
+  identityRef:
+    envFrom:
+      - optional: true
+        configMapRef:
+          name: <ConfigMap Name>
+          namespace: <ConfigMap Namespace>
+    env:
+      - name: type
+        value: dev
+      - name: UUID
+        optional: true
+        default: dev1234
+        valueFrom:
+          configMapKeyRef:
+             name: <ConfigMap Name>
+             namespace: <ConfigMap Namespace>
+             key: <key within that ConfigMap>
+  identityKey: UUID
 ```
 
-### Required Fields
+### Spec
 
-- `.spec.sdk-key`
-  - type: string
-  - or
-  - type: object
-    - valueFrom
-      - secretKeyRef:
-        - name
-          - type: string
-        - key
-          - type: string
+`.spec`
 
-## Features
+`spec` is required and **must** include oneOf `sdkKey` or `sdkKeyRef`.
+
+**Schema:**
+
+```yaml
+spec:
+  type: object
+  allOf:
+    - # you must define oneOf:
+      oneOf:
+        - required: [sdkKey]
+        - required: [sdkKeyRef]
+    - # you must define oneOf:
+      oneOf:
+        - # neither 'identityRef' nor 'identityKey' is used
+          not:
+            anyOf:
+              - required: [identityRef]
+              - required: [identityKey]
+        - # 'identityRef' is used by itself
+          required: [identityRef]
+          not:
+            required: [identityKey]
+        - # 'identityRef' and 'identityKey' are used together
+          required: [identityRef, identityKey]
+  properties:
+    sdkKey:
+      type: string
+    sdkKeyRef:
+      type: object
+      ...
+    identityKey:
+      type: string
+    identityRef:
+      type: object
+      ...
+```
+
+### SdkKey
+
+`.spec.sdkKey`
+
+An SDK key is necessary in order to communicate with LaunchDarkly. Use `sdkKey`
+when you want to use a plain text LaunchDarkly SDK key in your FeatureFlagSetLD.
+For a more secure implementation, use [sdkKeyRef](#sdkKeyRef).
+
+**Schema:**
+
+```yaml
+sdkKey:
+  type: string
+```
+
+### SdkKeyRef
+
+`.spec.sdkKeyRef`
+
+An SDK key is necessary in order to communicate with LaunchDarkly. Use
+`sdkKeyRef` when you want to use a secret reference to your LaunchDarkly SDK
+key for your FeatureFlagSetLD.
+
+**Schema:**
+
+```yaml
+sdkKeyRef:
+  type: object
+  required: [valueFrom]
+  properties:
+    valueFrom:
+      type: object
+      required: [secretKeyRef]
+      properties:
+        secretKeyRef:
+          type: object
+          required: [name, key]
+          properties:
+            name:
+              type: string
+            key:
+              type: string
+            namespace:
+              type: string
+```
 
 ### Identity
 
@@ -55,71 +144,27 @@ rules, based on cluster data, return different values.
 eg. cluster data `type: dev` could match rules such as
 `IF 'type' IS ONE OF 'dev' SERVE 'some new feature'`
 
-- Schema:
-  - oneOf:
-    - type: string
-    - type: array
-      - items:
-        - oneOf:
-          - type: string
-          - type: object
-            - required: [valueFrom.configMapKeyRef]
-
-eg.
+**Schema**
 
 ```yaml
-        identity: "<ConfigMap name>"
 
-        identity:
-        - "<ConfigMap name>"
-
-        identity:
-        - valueFrom:
-            configMapKeyRef:
-              name: "<ConfigMap name>" # required
-              key: "<key within ConfigMap>" # optional
-              namespace: "<ConfigMap namespace>" # optional
-              type: "json" # optional
 ```
 
-#### Identity valueFrom
+### IdentityKey
 
-`.spec.identity[].valueFrom.configMapKeyRef`
+**Path:** `.spec.identityKey`
 
-If you need to specify a ConfigMap as the identity, but need to specify extra
-lookup details, this is how you would do it.
+**Description:** If you need to specify a specific key to use as the user key in
+LaunchDarkly, this allows you to identify the key to use.
 
-- Schema:
-  - type: object
-    - required: [name]
-    - optional: [namespace, key, type]
+**Schema:**
 
-Optional field details:
+```yaml
+identityKey:
+  type: string
+```
 
-- namespace:
-  - Default: `this.namespace`
-  - Usage: specified specific namespace to lookup ConfigMap from
-- key
-  - Default: `undefined`
-  - Usage: specify single key from ConfigMap to use in identity. if left undefined,
-  entire ConfigMap will be part of identity.
-- type
-  - Default: string
-  - options: ['json']
-  - Usage: when you have a stringified JSON object in a ConfigMap that you want
-  to use as your identity, specifying this will parse the JSON and use all the items
-  in the JSON as part of the identity.
-
-#### Identity-Key
-
-`.spec.identity-key`
-
-If you need to specify a specific key to use as the user key in LaunchDarkly, this
-allows you to identify the key in the identity ConfigMap to use.
-
-- Schema:
-  - type: string
-  - default: ffsld's namespace uid
+**Default:** The `uid` of the namespace the resource is deployed in.
 
 ### Managed Resource Labels
 

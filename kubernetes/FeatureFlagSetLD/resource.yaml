@@ -96,19 +96,23 @@ items:
             spec:
               type: object
               allOf:
-                - oneOf:
+                - # you must define oneOf:
+                  oneOf:
                     - required: [sdkKey]
                     - required: [sdkKeyRef]
-                - oneOf:
-                    # you may not define identityKey without also defining identityRef
-                    - required: [identityRef, identityKey]
-                    - required: [identityRef]
+                - # you must define oneOf:
+                  oneOf:
+                    - # neither 'identityRef' nor 'identityKey' is used
+                      not:
+                        anyOf:
+                          - required: [identityRef]
+                          - required: [identityKey]
+                    - # 'identityRef' is used by itself
+                      required: [identityRef]
                       not:
                         required: [identityKey]
-                    - not:
-                        anyOf:
-                          - required: [identityKey]
-                          - required: [identityRef]
+                    - # 'identityRef' and 'identityKey' are used together
+                      required: [identityRef, identityKey]
               properties:
                 sdkKey:
                   type: string
@@ -182,6 +186,7 @@ items:
                       items:
                         type: object
                         allOf:
+                          - required: [name]
                           - # all array items should be oneOf ['value', 'valueFrom']
                             oneOf:
                               - required: [value]
@@ -233,6 +238,9 @@ items:
                                     type: string
                                   namespace:
                                     type: string
+                                  type:
+                                    type: string
+                                    enum: [number, boolean, json]
                               secretKeyRef:
                                 type: object
                                 required: [name, key]
@@ -243,6 +251,9 @@ items:
                                     type: string
                                   namespace:
                                     type: string
+                                  type:
+                                    type: string
+                                    enum: [number, boolean, json]
                               genericKeyRef:
                                 type: object
                                 required: [apiVersion, kind, name, key]
@@ -257,3 +268,6 @@ items:
                                     type: string
                                   namespace:
                                     type: string
+                                  type:
+                                    type: string
+                                    enum: [number, boolean, json]
