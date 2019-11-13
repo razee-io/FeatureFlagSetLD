@@ -56,15 +56,20 @@ items:
     kind: CustomResourceDefinition
     metadata:
       # name must match the spec fields below, and be in the form: <plural>.<group>
-      name: featureflagsetsld.operator.razee.io
+      name: featureflagsetsld.deploy.razee.io
       annotations:
         razee.io/git-repo: "{{{GIT_REMOTE}}}"
         razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
     spec:
       # group name to use for REST API: /apis/<group>/<version>
-      group: operator.razee.io
+      group: deploy.razee.io
       # list of versions supported by this CustomResourceDefinition
       versions:
+        - name: v1alpha1
+          # Each version can be enabled/disabled by Served flag.
+          served: true
+          # One and only one version must be marked as the storage version.
+          storage: false
         - name: v1alpha2
           # Each version can be enabled/disabled by Served flag.
           served: true

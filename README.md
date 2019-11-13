@@ -19,7 +19,7 @@ kubectl apply -f "https://github.com/razee-io/FeatureFlagSetLD/releases/latest/d
 ### Sample
 
 ```yaml
-apiVersion: operator.razee.io/v1alpha2
+apiVersion: deploy.razee.io/v1alpha2
 kind: FeatureFlagSetLD
 metadata:
   name: <name>
@@ -48,9 +48,9 @@ spec:
 
 ### Spec
 
-`.spec`
+**Path:** `.spec`
 
-`spec` is required and **must** include oneOf `sdkKey` or `sdkKeyRef`.
+**Description:** `spec` is required and **must** include oneOf `sdkKey` or `sdkKeyRef`.
 
 **Schema:**
 
@@ -90,10 +90,10 @@ spec:
 
 ### SdkKey
 
-`.spec.sdkKey`
+**Path:** `.spec.sdkKey`
 
-An SDK key is necessary in order to communicate with LaunchDarkly. Use `sdkKey`
-when you want to use a plain text LaunchDarkly SDK key in your FeatureFlagSetLD.
+**Description:** An SDK key is necessary in order to communicate with LaunchDarkly.
+Use `sdkKey` when you want to use a plain text LaunchDarkly SDK key in your FeatureFlagSetLD.
 For a more secure implementation, use [sdkKeyRef](#sdkKeyRef).
 
 **Schema:**
@@ -105,10 +105,10 @@ sdkKey:
 
 ### SdkKeyRef
 
-`.spec.sdkKeyRef`
+**Path:** `.spec.sdkKeyRef`
 
-An SDK key is necessary in order to communicate with LaunchDarkly. Use
-`sdkKeyRef` when you want to use a secret reference to your LaunchDarkly SDK
+**Description:** An SDK key is necessary in order to communicate with LaunchDarkly.
+Use `sdkKeyRef` when you want to use a secret reference to your LaunchDarkly SDK
 key for your FeatureFlagSetLD.
 
 **Schema:**
@@ -134,20 +134,187 @@ sdkKeyRef:
               type: string
 ```
 
-### Identity
+### IdentityRef
 
-`.spec.identity`
+**Path:** `.spec.identityRef`
 
-Specifying the identity attribute will give the FeatureFlagSetLD cluster specific
-data to send to LaunchDarkly for rule evaluation. This allows you to have unique
-rules, based on cluster data, return different values.
+**Description:** Specifying the identityRef attribute will give the FeatureFlagSetLD
+cluster specific data to send to LaunchDarkly for rule evaluation. This allows you
+to have unique rules, based on cluster data, return different values.
 eg. cluster data `type: dev` could match rules such as
 `IF 'type' IS ONE OF 'dev' SERVE 'some new feature'`
 
 **Schema**
 
 ```yaml
+identityRef:
+  type: object
+  anyOf:
+    - required: [envFrom]
+    - required: [env]
+  properties:
+    envFrom:
+      type: array
+      ...
+    env:
+      type: array
+      ...
+```
 
+#### EnvFrom
+
+**Path:** `.spec.identityRef.envFrom`
+
+**Description:** use envFrom when you want to load a whole resource. The keys from
+the resource will become the keys used in the identity object. Note any
+CRD with a high level `.data` section (like ConfigMaps and Secrets have), can be
+loaded by using genericMapRef.
+
+**Schema**
+
+```yaml
+envFrom:
+  type: array
+  items:
+    type: object
+    oneOf:
+      - required: [configMapRef]
+      - required: [secretMapRef]
+      - required: [genericMapRef]
+    properties:
+      optional:
+        type: boolean
+      configMapRef:
+        type: object
+        required: [name]
+        properties:
+          name:
+            type: string
+          namespace:
+            type: string
+      secretMapRef:
+        type: object
+        required: [name]
+        properties:
+          name:
+            type: string
+          namespace:
+            type: string
+      genericMapRef:
+        type: object
+        required: [apiVersion, kind, name]
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          name:
+            type: string
+          namespace:
+            type: string
+```
+
+#### Env
+
+**Path:** `.spec.identityRef.env`
+
+**Description:** use env when you want to load specific values from a resource.
+Note any CRD with a high level `.data` section (like ConfigMaps
+and Secrets have), can be loaded by using genericKeyRef.
+
+**Schema**
+
+```yaml
+env:
+  type: array
+  items:
+    type: object
+    allOf:
+      - required: [name]
+      - # all array items should be oneOf ['value', 'valueFrom']
+        oneOf:
+          - required: [value]
+            # if 'value', neither 'optional' nor 'default' may be used
+            not:
+              anyOf:
+                - required: [default]
+                - required: [optional]
+          - required: [valueFrom]
+            # if 'valueFrom', you must define oneOf:
+            oneOf:
+              - # neither 'optional' nor 'default' is used
+                not:
+                  anyOf:
+                    - required: [default]
+                    - required: [optional]
+              - # 'optional' is used by itself
+                required: [optional]
+                not:
+                  required: [default]
+              - # 'optional' and 'default' are used together IFF optional == true
+                required: [optional, default]
+                properties:
+                  optional:
+                    enum: [true]
+    properties:
+      optional:
+        type: boolean
+      default:
+        x-kubernetes-int-or-string: true
+      name:
+        type: string
+      value:
+        x-kubernetes-int-or-string: true
+      valueFrom:
+        type: object
+        oneOf:
+          - required: [configMapKeyRef]
+          - required: [secretKeyRef]
+          - required: [genericKeyRef]
+        properties:
+          configMapKeyRef:
+            type: object
+            required: [name, key]
+            properties:
+              name:
+                type: string
+              key:
+                type: string
+              namespace:
+                type: string
+              type:
+                type: string
+                enum: [number, boolean, json]
+          secretKeyRef:
+            type: object
+            required: [name, key]
+            properties:
+              name:
+                type: string
+              key:
+                type: string
+              namespace:
+                type: string
+              type:
+                type: string
+                enum: [number, boolean, json]
+          genericKeyRef:
+            type: object
+            required: [apiVersion, kind, name, key]
+            properties:
+              apiVersion:
+                type: string
+              kind:
+                type: string
+              name:
+                type: string
+              key:
+                type: string
+              namespace:
+                type: string
+              type:
+                type: string
+                enum: [number, boolean, json]
 ```
 
 ### IdentityKey
