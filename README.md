@@ -144,7 +144,7 @@ to have unique rules, based on cluster data, return different values.
 eg. cluster data `type: dev` could match rules such as
 `IF 'type' IS ONE OF 'dev' SERVE 'some new feature'`
 
-**Schema**
+**Schema:**
 
 ```yaml
 identityRef:
@@ -170,7 +170,7 @@ the resource will become the keys used in the identity object. Note any
 CRD with a high level `.data` section (like ConfigMaps and Secrets have), can be
 loaded by using genericMapRef.
 
-**Schema**
+**Schema:**
 
 ```yaml
 envFrom:
@@ -222,7 +222,7 @@ envFrom:
 Note any CRD with a high level `.data` section (like ConfigMaps
 and Secrets have), can be loaded by using genericKeyRef.
 
-**Schema**
+**Schema:**
 
 ```yaml
 env:
