@@ -58,7 +58,6 @@ items:
                 periodSeconds: 150
                 timeoutSeconds: 30
                 failureThreshold: 1
-          containers:
             - name: ffsld-conversionWebhookServer
               image: "quay.io/razee/featureflagsetld:{{TRAVIS_TAG}}"
               resources:
