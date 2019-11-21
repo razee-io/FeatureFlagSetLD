@@ -58,7 +58,40 @@ items:
                 periodSeconds: 150
                 timeoutSeconds: 30
                 failureThreshold: 1
-            - name: ffsld-conversionWebhookServer
+
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: razeedeploy
+      labels:
+        deploy.razee.io/mode: "EnsureExists"
+        deploy.razee.io/Reconcile: "false"
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ffsld-conversionwebhookwerver
+      namespace: razeedeploy
+      annotations:
+        razee.io/git-repo: "{{{GIT_REMOTE}}}"
+        razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
+      labels:
+        razee/watch-resource: "lite"
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ffsld-conversionwebhookwerver
+      strategy:
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: ffsld-conversionwebhookwerver
+            razee/watch-resource: "lite"
+          name: ffsld-conversionwebhookwerver
+        spec:
+          containers:
+            - name: ffsld-conversionwebhookwerver
               image: "quay.io/razee/featureflagsetld:{{TRAVIS_TAG}}"
               resources:
                 limits:
@@ -69,14 +102,11 @@ items:
                   cpu: 40m
               imagePullPolicy: Always
               command: ["npm"]
-              args: ["start-cws"]
-              # ports:
-              #   - containerPort: 8080
-              #     protocol: TCP
+              args: ["run", "start-cws"]
               livenessProbe:
                 httpGet:
                   path: /liveness
-                  port: 3333
+                  port: 8080
                 initialDelaySeconds: 5
                 periodSeconds: 10
                 timeoutSeconds: 2
@@ -84,11 +114,11 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ffsld-conversionWebhookServer-service
-      namespace: default
+      name: ffsld-conversionwebhookwerver-service
+      namespace: razeedeploy
     spec:
       selector:
-        app: featureflagsetld-controller
+        app: ffsld-conversionwebhookwerver
       ports:
         - protocol: TCP
           port: 80
@@ -123,8 +153,8 @@ items:
         # webhookClientConfig is required when strategy is `Webhook` and it configures the webhook endpoint to be called by API server.
         webhookClientConfig:
           service:
-            namespace: default
-            name: ffsld-conversionWebhookServer-service
+            namespace: razeedeploy
+            name: ffsld-conversionwebhookwerver-service
             path: /crd-conversion
             port: 8080
         conversionReviewVersions: ["v1", "v1beta1"]
