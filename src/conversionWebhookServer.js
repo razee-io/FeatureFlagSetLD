@@ -7,6 +7,10 @@ const port = 8080;
 
 app.use(body_parser.json({ limit: '8mb' }));
 
+app.get('/liveness', (req, res) => {
+  return res.sendStatus(200);
+});
+
 app.post('/crd-conversion', (req, res) => {
   let responseJson = {
     'apiVersion': 'apiextensions.k8s.io/v1beta1',
