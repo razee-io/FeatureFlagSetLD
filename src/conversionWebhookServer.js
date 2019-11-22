@@ -1,5 +1,6 @@
 const express = require('express');
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const body_parser = require('body-parser');
 const objectPath = require('object-path');
@@ -35,3 +36,4 @@ app.post('/crd-conversion', (req, res) => {
 });
 
 https.createServer(credentials, app).listen(443, () => { log.info('Listening on port 443'); });
+http.createServer(app).listen(8080, () => { log.info('Listening on port 8080'); });
