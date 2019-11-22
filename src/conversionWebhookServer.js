@@ -15,10 +15,13 @@ const credentials = {
 app.use(body_parser.json({ limit: '8mb' }));
 
 app.get('/liveness', (req, res) => {
+  log.info('Liveness has been gotten');
   return res.sendStatus(200);
 });
 
 app.post('/crd-conversion', (req, res) => {
+  log.info(objectPath.get(req, 'body'));
+
   let responseJson = {
     'apiVersion': 'apiextensions.k8s.io/v1beta1',
     'kind': 'ConversionReview'
