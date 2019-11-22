@@ -1,9 +1,15 @@
 const express = require('express');
+const https = require('https');
+const fs = require('fs');
 const body_parser = require('body-parser');
 const objectPath = require('object-path');
 const log = require('./bunyan-api').createLogger('conversionWebhookServer');
 const app = express();
-const port = 8080;
+
+const credentials = {
+  key: fs.readFileSync('src/creds/key.pem'),
+  cert: fs.readFileSync('src/creds/cert.pem')
+};
 
 app.use(body_parser.json({ limit: '8mb' }));
 
@@ -28,4 +34,4 @@ app.post('/crd-conversion', (req, res) => {
   res.json(responseJson);
 });
 
-app.listen(port, () => log.info(`app listening on port ${port}`));
+https.createServer(credentials, app).listen(443, () => { log.info('Listening on port 443'); });
