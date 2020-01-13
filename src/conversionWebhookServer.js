@@ -105,7 +105,7 @@ function convertIdentity(requestObj, convertedObj) {
       } else if (typeof id == 'object') {
         let hasKey = objectPath.has(id, 'valueFrom.configMapKeyRef.key');
         if (hasKey) { // Get single key from configmap via 'env'
-          let envIdObj = { 'name': objectPath.get(id, 'valueFrom.configMapKeyRef.key'), id };
+          let envIdObj = { 'name': objectPath.get(id, 'valueFrom.configMapKeyRef.key'), 'valueFrom': objectPath.get(id, 'valueFrom') };
           objectPath.push(convertedObj, 'spec.identityRef.env', envIdObj);
         } else { // Get whole configmap via 'envFrom'
           let envFromIdObj = { 'configMapRef': { 'name': objectPath.get(id, 'valueFrom.configMapKeyRef.name'), 'namespace': objectPath.get(id, 'valueFrom.configMapKeyRef.name') } };
