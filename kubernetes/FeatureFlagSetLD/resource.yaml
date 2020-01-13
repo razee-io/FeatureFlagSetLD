@@ -344,6 +344,9 @@ items:
                                       type:
                                         type: string
                                         enum: [number, boolean, json]
+                data:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
       conversion:
         # a Webhook strategy instruct API server to call an external webhook for any conversion between custom resources.
         strategy: Webhook
