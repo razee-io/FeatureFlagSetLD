@@ -29,7 +29,7 @@ async function main() {
   do {
     retry++ <= 10 ? await new Promise((resolve) => setTimeout(resolve, retry * 1000)) : process.exit(1);
 
-    cwsCode = await axios({ method: 'get', url: 'http://ffsld-conversionwebhookserver-service.razeedeploy.svc/readiness' }); // conversion webhook server ready for requests
+    cwsCode = await axios({ method: 'get', url: 'http://conversionwebhookserver-service.razeedeploy.svc/readiness' }); // conversion webhook server ready for requests
     log.info(cwsCode.responseCode);
   } while (cwsCode.responseCode !== 200);
 
