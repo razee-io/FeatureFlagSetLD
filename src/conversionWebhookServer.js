@@ -19,6 +19,10 @@ app.get('/liveness', (req, res) => {
   log.info('Liveness has been gotten');
   return res.sendStatus(200);
 });
+app.get('/readiness', (req, res) => {
+  log.info('Readiness has been gotten');
+  return res.sendStatus(200);
+});
 
 app.post('/crd-conversion', (req, res) => {
   log.debug(objectPath.get(req, 'body'));

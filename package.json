@@ -18,6 +18,7 @@
   "scripts": {
     "start": "node src/index.js",
     "start-cws": "node src/conversionWebhookServer.js",
+    "start-uso": "node src/upgradeStoredObjects.js",
     "test": "nyc --reporter=html --all --reporter=text mocha ",
     "test:debug": "mocha --inspect-brk",
     "check-coverage": "nyc check-coverage --statements 0 --branches 0 --functions 0 --lines 0",
@@ -31,7 +32,8 @@
     "type": "git",
     "url": "git@github.com:razee-io/FeatureFlagSetLD.git"
   },
-  "contributors": [{
+  "contributors": [
+    {
       "name": "Alex Lewitt"
     },
     {
@@ -45,6 +47,7 @@
   "dependencies": {
     "@razee/kubernetes-util": "0.0.7",
     "@razee/razeedeploy-core": "^0.5.0",
+    "axios": "^0.19.1",
     "bunyan": "^1.8.12",
     "express": "^4.17.1",
     "ldclient-node": "^5.8.0",

@@ -69,7 +69,7 @@ items:
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: ffsld-conversionwebhookserver
+      name: conversionwebhookserver
       namespace: razeedeploy
       annotations:
         razee.io/git-repo: "{{{GIT_REMOTE}}}"
@@ -80,18 +80,18 @@ items:
       replicas: 1
       selector:
         matchLabels:
-          app: ffsld-conversionwebhookserver
+          app: conversionwebhookserver
       strategy:
         type: RollingUpdate
       template:
         metadata:
           labels:
-            app: ffsld-conversionwebhookserver
+            app: conversionwebhookserver
             razee/watch-resource: "lite"
-          name: ffsld-conversionwebhookserver
+          name: conversionwebhookserver
         spec:
           containers:
-            - name: ffsld-conversionwebhookserver
+            - name: conversionwebhookserver
               image: "quay.io/razee/featureflagsetld:{{TRAVIS_TAG}}"
               resources:
                 limits:
@@ -114,11 +114,11 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ffsld-conversionwebhookserver-service
+      name: conversionwebhookserver-service
       namespace: razeedeploy
     spec:
       selector:
-        app: ffsld-conversionwebhookserver
+        app: conversionwebhookserver
       ports:
         - name: https
           protocol: TCP
@@ -354,10 +354,10 @@ items:
         webhookClientConfig:
           service:
             namespace: razeedeploy
-            name: ffsld-conversionwebhookserver-service
+            name: conversionwebhookserver-service
             path: /crd-conversion
             port: 443
-          caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvRENDQWVRQ0NRQ2RBdEh4SGhmSGRqQU5CZ2txaGtpRzl3MEJBUXNGQURCQU1UNHdQQVlEVlFRREREVm0KWm5Oc1pDMWpiMjUyWlhKemFXOXVkMlZpYUc5dmEzTmxjblpsY2kxelpYSjJhV05sTG5KaGVtVmxaR1Z3Ykc5NQpMbk4yWXpBZUZ3MHlNREF4TVRNeE9USTJOVEJhRncwME56QTFNekV4T1RJMk5UQmFNRUF4UGpBOEJnTlZCQU1NCk5XWm1jMnhrTFdOdmJuWmxjbk5wYjI1M1pXSm9iMjlyYzJWeWRtVnlMWE5sY25acFkyVXVjbUY2WldWa1pYQnMKYjNrdWMzWmpNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXRaSlJHMTJ4LytMegp3b050dTBScVMwWWsrUHBqcXJQNXVsZ29ZSjR0L2htTXdESEJnZ0ZlQnNIVW5tQ3VJRmY3VmZlOE5FNDV2b0RsCjFyeEZJTjArRDlObVR1Qjd5OXd1Sm1lcjNuMmIra3FtSDRpVTVlRUtic1ZqS0xENTROZW1pcHdIc3drMFA2a2YKQUJZNGJaUnhyTGhMK2hDMCtQaDVUOC9xNHlGSklzUFh2MGZsOTBLUE1mbkhyYkdXU3J0VWcyZmtERWVvOUQ3UgpnWXNwVUZnUGVyZy9xQkRJNzc1aVlGa3RaWlB3K0QrMmw3d2t6a0R3bEozRVlWMDJQK1NzRlpabjgvWHd5bG1yCmwrQWVNUE8rVjdZdGl3aHVCL0ZsRFZFTnkrQ1R6dGJkanBRQUhNZHdjejN0OU5vcnYzVHl6SUlwVXJOTFY4clgKLzM2Y0pYdmk1d0lEQVFBQk1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQisrWnczQWhTVXY2ZnJ6bHVqYXBIVgpMTFd6aGZFZk9ydjM4QkhZMkRZZUpEZ2hlYWdjZHhndGtMZ3FmcHYrY1p4dDI0cXNXc0RqYnlNMTl0Uk5ka0dXCmlHUmxPNHlQdHpWV0Z6L2VqbW8vYUowSk1sRkpXNHJRQkgwZ3FMdHI0eGcvckEvb2RCNFhUNll6eFZJN09zRnMKWS9UaG5VR3JiVk16TmcvakcyTUY1cFRhazBWSDRpQ0dqcmxwcWRGelpGQjlNYWN4SVZOUk1DWXJjUkRBSCtZVAo4djdMOGlLTHVvbnRSU0xGSkVyS0paaWg2N1VqVjhuVFZyOEgraklWS1JZdFBGZ0EvY0dRaGdrNUFWWmNNQ3d6CkFQa0xFY042bnVHLzdPMURDNGNTdTFOSGtUUjBDNmt1M3FNM0J0ZU4wdTRkaHRmYm0zQmp4NWNmSk9jdUNtNWQKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==
+          caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4RENDQWRnQ0NRQ0NwNlZZdytZYXREQU5CZ2txaGtpRzl3MEJBUXNGQURBNk1UZ3dOZ1lEVlFRRERDOWoKYjI1MlpYSnphVzl1ZDJWaWFHOXZhM05sY25abGNpMXpaWEoyYVdObExuSmhlbVZsWkdWd2JHOTVMbk4yWXpBZQpGdzB5TURBeE1UUXhPVFF3TVRKYUZ3MDBOekEyTURFeE9UUXdNVEphTURveE9EQTJCZ05WQkFNTUwyTnZiblpsCmNuTnBiMjUzWldKb2IyOXJjMlZ5ZG1WeUxYTmxjblpwWTJVdWNtRjZaV1ZrWlhCc2Iza3VjM1pqTUlJQklqQU4KQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBdFpKUkcxMngvK0x6d29OdHUwUnFTMFlrK1BwagpxclA1dWxnb1lKNHQvaG1Nd0RIQmdnRmVCc0hVbm1DdUlGZjdWZmU4TkU0NXZvRGwxcnhGSU4wK0Q5Tm1UdUI3Cnk5d3VKbWVyM24yYitrcW1INGlVNWVFS2JzVmpLTEQ1NE5lbWlwd0hzd2swUDZrZkFCWTRiWlJ4ckxoTCtoQzAKK1BoNVQ4L3E0eUZKSXNQWHYwZmw5MEtQTWZuSHJiR1dTcnRVZzJma0RFZW85RDdSZ1lzcFVGZ1BlcmcvcUJESQo3NzVpWUZrdFpaUHcrRCsybDd3a3prRHdsSjNFWVYwMlArU3NGWlpuOC9Yd3lsbXJsK0FlTVBPK1Y3WXRpd2h1CkIvRmxEVkVOeStDVHp0YmRqcFFBSE1kd2N6M3Q5Tm9ydjNUeXpJSXBVck5MVjhyWC8zNmNKWHZpNXdJREFRQUIKTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFDWmJ3L1dSQ3F0clkrSFRDNkU5OEdjdS9hWk9RVmlnMlJTZ0dhbwpOYTNFelEyWE9GWmM2aS9tSkJMc282MVhhS1hScFZSUTNSUm5KVW5WRFBsRG1SM1FmNnNvNHFtZjFtTm1sRUlyClVZdjN0aG5Bd0ZBc3FtYktBMk1BK3ZUcE4xaXltTU5jWEdXTVNQQUhlM1ZEV2l4UFlkeXY3b1JGN1IwME5VNTQKOGVTTjJWelJHcTJPcEU1Mk9KRFlvMWdDeEd4QmFKcXBORENMb3lpL1JYaHdoUmhGcUZZWHBaTlVoYkRtQ0U4dwplYnl5OGtmWVhjNC96a1hsZmJ6dStXUVF6ZXdHdThId0NtSlhhWHNDVFNHTFdlbGVna24vNGhnWmJyeHNZVHorCjhLb3dXeTZQc1plUDhDUDI4amo3OWZtd1p5c3RxOWlDYXZSRHBvbTR5VGg2aHp2RwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t
         conversionReviewVersions: ["v1", "v1beta1"]
       # either Namespaced or Cluster
       scope: Namespaced
