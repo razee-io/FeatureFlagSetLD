@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: upgradestoredobjectsjob
+  namespace: razeedeploy
+spec:
+  template:
+    spec:
+      containers:
+      - name: upgradestoredobjectsjob
+        image: "quay.io/razee/featureflagsetld:0.5.0_010"
+        command: ["npm"]
+        args: ["run", "start-uso"]
+        env:
+          - name: CUSTOM_RESOURCE_NAME
+            value: featureflagsetsld.deploy.razee.io
+      restartPolicy: Never
+  backoffLimit: 4
