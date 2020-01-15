@@ -58,76 +58,6 @@ items:
                 periodSeconds: 150
                 timeoutSeconds: 30
                 failureThreshold: 1
-
-  - apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: razeedeploy
-      labels:
-        deploy.razee.io/mode: "EnsureExists"
-        deploy.razee.io/Reconcile: "false"
-  - apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: conversionwebhookserver
-      namespace: razeedeploy
-      annotations:
-        razee.io/git-repo: "{{{GIT_REMOTE}}}"
-        razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
-      labels:
-        razee/watch-resource: "lite"
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: conversionwebhookserver
-      strategy:
-        type: RollingUpdate
-      template:
-        metadata:
-          labels:
-            app: conversionwebhookserver
-            razee/watch-resource: "lite"
-          name: conversionwebhookserver
-        spec:
-          containers:
-            - name: conversionwebhookserver
-              image: "quay.io/razee/featureflagsetld:{{TRAVIS_TAG}}"
-              resources:
-                limits:
-                  memory: 100Mi
-                  cpu: 100m
-                requests:
-                  memory: 75Mi
-                  cpu: 40m
-              imagePullPolicy: Always
-              command: ["npm"]
-              args: ["run", "start-cws"]
-              livenessProbe:
-                httpGet:
-                  path: /liveness
-                  port: 8080
-                initialDelaySeconds: 5
-                periodSeconds: 10
-                timeoutSeconds: 2
-                failureThreshold: 1
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      name: conversionwebhookserver-service
-      namespace: razeedeploy
-    spec:
-      selector:
-        app: conversionwebhookserver
-      ports:
-        - name: https
-          protocol: TCP
-          port: 443
-        - name: http
-          port: 80
-          protocol: TCP
-          targetPort: 8080
-
   - apiVersion: apiextensions.k8s.io/v1beta1
     kind: CustomResourceDefinition
     metadata:
@@ -168,6 +98,7 @@ items:
               properties:
                 spec:
                   type: object
+                  x-kubernetes-preserve-unknown-fields: true
                   allOf:
                     - # you must define oneOf:
                       oneOf:
@@ -347,18 +278,6 @@ items:
                 data:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
-      conversion:
-        # a Webhook strategy instruct API server to call an external webhook for any conversion between custom resources.
-        strategy: Webhook
-        # webhookClientConfig is required when strategy is `Webhook` and it configures the webhook endpoint to be called by API server.
-        webhookClientConfig:
-          service:
-            namespace: razeedeploy
-            name: conversionwebhookserver-service
-            path: /crd-conversion
-            port: 443
-          caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4RENDQWRnQ0NRQ0NwNlZZdytZYXREQU5CZ2txaGtpRzl3MEJBUXNGQURBNk1UZ3dOZ1lEVlFRRERDOWoKYjI1MlpYSnphVzl1ZDJWaWFHOXZhM05sY25abGNpMXpaWEoyYVdObExuSmhlbVZsWkdWd2JHOTVMbk4yWXpBZQpGdzB5TURBeE1UUXhPVFF3TVRKYUZ3MDBOekEyTURFeE9UUXdNVEphTURveE9EQTJCZ05WQkFNTUwyTnZiblpsCmNuTnBiMjUzWldKb2IyOXJjMlZ5ZG1WeUxYTmxjblpwWTJVdWNtRjZaV1ZrWlhCc2Iza3VjM1pqTUlJQklqQU4KQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBdFpKUkcxMngvK0x6d29OdHUwUnFTMFlrK1BwagpxclA1dWxnb1lKNHQvaG1Nd0RIQmdnRmVCc0hVbm1DdUlGZjdWZmU4TkU0NXZvRGwxcnhGSU4wK0Q5Tm1UdUI3Cnk5d3VKbWVyM24yYitrcW1INGlVNWVFS2JzVmpLTEQ1NE5lbWlwd0hzd2swUDZrZkFCWTRiWlJ4ckxoTCtoQzAKK1BoNVQ4L3E0eUZKSXNQWHYwZmw5MEtQTWZuSHJiR1dTcnRVZzJma0RFZW85RDdSZ1lzcFVGZ1BlcmcvcUJESQo3NzVpWUZrdFpaUHcrRCsybDd3a3prRHdsSjNFWVYwMlArU3NGWlpuOC9Yd3lsbXJsK0FlTVBPK1Y3WXRpd2h1CkIvRmxEVkVOeStDVHp0YmRqcFFBSE1kd2N6M3Q5Tm9ydjNUeXpJSXBVck5MVjhyWC8zNmNKWHZpNXdJREFRQUIKTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFDWmJ3L1dSQ3F0clkrSFRDNkU5OEdjdS9hWk9RVmlnMlJTZ0dhbwpOYTNFelEyWE9GWmM2aS9tSkJMc282MVhhS1hScFZSUTNSUm5KVW5WRFBsRG1SM1FmNnNvNHFtZjFtTm1sRUlyClVZdjN0aG5Bd0ZBc3FtYktBMk1BK3ZUcE4xaXltTU5jWEdXTVNQQUhlM1ZEV2l4UFlkeXY3b1JGN1IwME5VNTQKOGVTTjJWelJHcTJPcEU1Mk9KRFlvMWdDeEd4QmFKcXBORENMb3lpL1JYaHdoUmhGcUZZWHBaTlVoYkRtQ0U4dwplYnl5OGtmWVhjNC96a1hsZmJ6dStXUVF6ZXdHdThId0NtSlhhWHNDVFNHTFdlbGVna24vNGhnWmJyeHNZVHorCjhLb3dXeTZQc1plUDhDUDI4amo3OWZtd1p5c3RxOWlDYXZSRHBvbTR5VGg2aHp2RwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t
-        conversionReviewVersions: ["v1", "v1beta1"]
       # either Namespaced or Cluster
       scope: Namespaced
       names:

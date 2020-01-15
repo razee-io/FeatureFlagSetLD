@@ -18,7 +18,6 @@
   "scripts": {
     "start": "node src/index.js",
     "start-cws": "node src/conversionWebhookServer.js",
-    "start-uso": "node src/upgradeStoredObjects.js",
     "test": "nyc --reporter=html --all --reporter=text mocha ",
     "test:debug": "mocha --inspect-brk",
     "check-coverage": "nyc check-coverage --statements 0 --branches 0 --functions 0 --lines 0",
@@ -32,8 +31,7 @@
     "type": "git",
     "url": "git@github.com:razee-io/FeatureFlagSetLD.git"
   },
-  "contributors": [
-    {
+  "contributors": [{
       "name": "Alex Lewitt"
     },
     {
