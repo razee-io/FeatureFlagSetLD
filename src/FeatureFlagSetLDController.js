@@ -30,17 +30,27 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async added() {
-    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
-    if (typeof sdkkeyRef == 'object') {
+    let sdkkeyAlpha1 = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
+    let sdkkeyStr = objectPath.get(this.data, ['object', 'spec', 'sdkKey']);
+    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdkKeyRef']);
+
+    if (typeof sdkkeyAlpha1 == 'string') {
+      this._sdkkey = sdkkeyAlpha1;
+    } else if (typeof sdkkeyStr == 'string') {
+      this._sdkkey = sdkkeyStr;
+    } else if (typeof sdkkeyAlpha1 == 'object') {
+      let secretName = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.name');
+      let secretNamespace = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.namespace', this.namespace);
+      let secretKey = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.key');
+      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
+    } else if (typeof sdkkeyRef == 'object') {
       let secretName = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.name');
       let secretNamespace = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.namespace', this.namespace);
       let secretKey = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.key');
       this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
-    } else {
-      this._sdkkey = sdkkeyRef;
     }
     if (!this._sdkkey) {
-      throw Error('spec.sdk-key must be defined');
+      throw Error('A LaunchDarkly SDK Key must be defined');
     }
     let sdkkey = this._sdkkey;
 
@@ -57,7 +67,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     }
 
     let identity = await this.assembleIdentity();
-    let identityKey = objectPath.get(this.data, ['object', 'spec', 'identity-key']);
+    let identityKey = objectPath.get(this.data, ['object', 'spec', 'identityKey']) || objectPath.get(this.data, ['object', 'spec', 'identity-key']);
 
     let userID = objectPath.get(identity, [identityKey]);
     if (!userID) {
@@ -116,7 +126,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async assembleIdentity() {
-    let identity = objectPath.get(this.data, ['object', 'spec', 'identity']);
+    let identity = objectPath.get(this.data, ['object', 'spec', 'identityRef']) || objectPath.get(this.data, ['object', 'spec', 'identity']);
     let newWatches = [];
     if (!identity) {
       this.reconcileWatchman(newWatches);
