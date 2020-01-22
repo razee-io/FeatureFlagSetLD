@@ -85,6 +85,12 @@ items:
                 spec:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
+                data:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                status:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
         - name: v1alpha2
           # Each version can be enabled/disabled by Served flag.
           served: true
@@ -276,6 +282,9 @@ items:
                                         type: string
                                         enum: [number, boolean, json]
                 data:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                status:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
       # either Namespaced or Cluster
