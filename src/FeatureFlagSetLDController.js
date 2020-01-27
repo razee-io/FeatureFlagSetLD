@@ -18,8 +18,7 @@ const objectPath = require('object-path');
 const LaunchDarkly = require('launchdarkly-node-server-sdk');
 const hash = require('object-hash');
 
-const { BaseController } = require('@razee/razeedeploy-core');
-const FetchEnvs = require('./FetchEnvs');
+const { BaseController, FetchEnvs } = require('@razee/razeedeploy-core');
 
 
 const clients = {};
