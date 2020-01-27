@@ -31,8 +31,7 @@
     "type": "git",
     "url": "git@github.com:razee-io/FeatureFlagSetLD.git"
   },
-  "contributors": [
-    {
+  "contributors": [{
       "name": "Alex Lewitt"
     },
     {
@@ -45,7 +44,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@razee/kubernetes-util": "0.0.7",
-    "@razee/razeedeploy-core": "^0.6.1",
+    "@razee/razeedeploy-core": "^0.6.2",
     "axios": "^0.19.1",
     "bunyan": "^1.8.12",
     "express": "^4.17.1",

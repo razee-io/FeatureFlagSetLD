@@ -132,7 +132,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     let identity = objectPath.get(this.data, ['object', 'spec', 'identity']);
     let identityRef = objectPath.get(this.data, ['object', 'spec', 'identityRef']);
     if (identityRef) {
-      let fetchEnvs = new FetchEnvs(this.data, this.kubeResourceMeta, this.kubeClass);
+      let fetchEnvs = new FetchEnvs(this);
       return fetchEnvs.get('spec.identityRef');
     } else if (!identity) {
       return {};
