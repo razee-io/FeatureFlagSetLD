@@ -1,7 +1,7 @@
 # FeatureFlagSetLD
 
 [![Build Status](https://travis-ci.com/razee-io/FeatureFlagSetLD.svg?branch=master)](https://travis-ci.com/razee-io/FeatureFlagSetLD)
-[![Greenkeeper badge](https://badges.greenkeeper.io/razee-io/FeatureFlagSetLD.svg)](https://greenkeeper.io/)
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=razee-io/FeatureFlagSetLD)](https://dependabot.com)
 ![GitHub](https://img.shields.io/github/license/razee-io/FeatureFlagSetLD.svg?color=success)
 
 FeatureFlagSetLD is a resource used to fetch feature flag values, evaluated based
