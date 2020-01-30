@@ -32,41 +32,16 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   async added() {
     this._instanceUid = objectPath.get(this.data, ['object', 'metadata', 'uid']);
 
-    let sdkkeyAlpha1 = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
-    let sdkkeyStr = objectPath.get(this.data, ['object', 'spec', 'sdkKey']);
-    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdkKeyRef']);
-
-    if (typeof sdkkeyAlpha1 == 'string') {
-      this._sdkkey = sdkkeyAlpha1;
-    } else if (typeof sdkkeyStr == 'string') {
-      this._sdkkey = sdkkeyStr;
-    } else if (typeof sdkkeyAlpha1 == 'object') {
-      let secretName = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.name');
-      let secretNamespace = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.namespace', this.namespace);
-      let secretKey = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.key');
-      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
-    } else if (typeof sdkkeyRef == 'object') {
-      let secretName = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.name');
-      let secretNamespace = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.namespace', this.namespace);
-      let secretKey = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.key');
-      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
-    }
-    if (!this._sdkkey) {
-      throw Error('A LaunchDarkly SDK Key must be defined');
-    }
-    let sdkkey = this._sdkkey;
+    let sdkkey = await this._getSdkKey();
     this._sdkkeyHash = hash(sdkkey);
 
-    let client;
-    if (clients[sdkkey]) {
-      client = objectPath.get(clients, [sdkkey, 'client']);
-      objectPath.set(clients, [sdkkey, 'instances', this._instanceUid], true);
-    } else {
+    let client = objectPath.get(clients, [sdkkey, 'client']);
+    if (client === undefined) {
       client = LaunchDarkly.init(sdkkey);
       await client.waitForInitialization();
       objectPath.set(clients, [sdkkey, 'client'], client);
-      objectPath.set(clients, [sdkkey, 'instances', this._instanceUid], true);
     }
+    objectPath.set(clients, [sdkkey, 'instances', this._instanceUid], true);
 
     let identity = await this.assembleIdentity();
     let identityKey = objectPath.get(this.data, ['object', 'spec', 'identityKey']) || objectPath.get(this.data, ['object', 'spec', 'identity-key']);
@@ -117,6 +92,33 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       });
       objectPath.set(clients, [sdkkey, 'watching'], true);
     }
+  }
+
+  async _getSdkKey() {
+    let sdkkeyAlpha1 = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
+    let sdkkeyStr = objectPath.get(this.data, ['object', 'spec', 'sdkKey']);
+    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdkKeyRef']);
+
+    if (typeof sdkkeyAlpha1 == 'string') {
+      this._sdkkey = sdkkeyAlpha1;
+    } else if (typeof sdkkeyStr == 'string') {
+      this._sdkkey = sdkkeyStr;
+    } else if (typeof sdkkeyAlpha1 == 'object') {
+      let secretName = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.name');
+      let secretNamespace = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.namespace', this.namespace);
+      let secretKey = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.key');
+      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
+    } else if (typeof sdkkeyRef == 'object') {
+      let secretName = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.name');
+      let secretNamespace = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.namespace', this.namespace);
+      let secretKey = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.key');
+      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
+    }
+    if (!this._sdkkey) {
+      throw Error('A LaunchDarkly SDK Key must be defined');
+    }
+
+    return this._sdkkey;
   }
 
   async _getSecretData(name, key, ns) {
@@ -211,14 +213,16 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async finalizerCleanup() {
-    objectPath.del(clients, [this._sdkkey, 'instances', this._instanceUid]);
+    let instanceUid = objectPath.get(this.data, ['object', 'metadata', 'uid']);
+    let sdkkey = await this._getSdkKey();
+    objectPath.del(clients, [sdkkey, 'instances', instanceUid]);
 
-    if (Object.keys(objectPath.get(clients, [this._sdkkey, 'instances'], {})).length == 0) {
-      this.log.debug(`Closing client ${this._sdkkey}`);
-      let client = objectPath.get(clients, [this._sdkkey, 'client'], { close: () => {} });
+    if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
+      this.log.debug(`Closing client ${sdkkey}`);
+      let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => {} });
       client.close();
-      objectPath.del(clients, [this._sdkkey]);
-      this.log.debug(`Client closed successfully ${this._sdkkey}`);
+      objectPath.del(clients, [sdkkey]);
+      this.log.debug(`Client closed successfully ${sdkkey}`);
     }
   }
 
