@@ -19,107 +19,319 @@ kubectl apply -f "https://github.com/razee-io/FeatureFlagSetLD/releases/latest/d
 ### Sample
 
 ```yaml
-apiVersion: deploy.razee.io/v1alpha1
+apiVersion: deploy.razee.io/v1alpha2
 kind: FeatureFlagSetLD
 metadata:
   name: <name>
   namespace: <namespace>
 spec:
-  sdk-key: oneOf [launch_darkly_sdk_key string, valueFrom.secretKeyRef]
-  identity: "<ConfigMap name>"
-  identity-key: "<key from identity to use as LD user key>"
+  sdkKey: sdk-key-from-LaunchDarky
+  identityRef:
+    envFrom:
+      - optional: true
+        configMapRef:
+          name: <ConfigMap Name>
+          namespace: <ConfigMap Namespace>
+    env:
+      - name: type
+        value: dev
+      - name: UUID
+        optional: true
+        default: dev1234
+        valueFrom:
+          configMapKeyRef:
+             name: <ConfigMap Name>
+             namespace: <ConfigMap Namespace>
+             key: <key within that ConfigMap>
+  identityKey: UUID
 ```
 
-### Required Fields
+### Spec
 
-- `.spec.sdk-key`
-  - type: string
-  - or
-  - type: object
-    - valueFrom
-      - secretKeyRef:
-        - name
-          - type: string
-        - key
-          - type: string
+**Path:** `.spec`
 
-## Features
+**Description:** `spec` is required and **must** include oneOf `sdkKey` or `sdkKeyRef`.
 
-### Identity
+**Schema:**
 
-`.spec.identity`
+```yaml
+spec:
+  type: object
+  allOf:
+    - # you must define oneOf:
+      oneOf:
+        - required: [sdkKey]
+        - required: [sdkKeyRef]
+    - # you must define oneOf:
+      oneOf:
+        - # neither 'identityRef' nor 'identityKey' is used
+          not:
+            anyOf:
+              - required: [identityRef]
+              - required: [identityKey]
+        - # 'identityRef' is used by itself
+          required: [identityRef]
+          not:
+            required: [identityKey]
+        - # 'identityRef' and 'identityKey' are used together
+          required: [identityRef, identityKey]
+  properties:
+    sdkKey:
+      type: string
+    sdkKeyRef:
+      type: object
+      ...
+    identityKey:
+      type: string
+    identityRef:
+      type: object
+      ...
+```
 
-Specifying the identity attribute will give the FeatureFlagSetLD cluster specific
-data to send to LaunchDarkly for rule evaluation. This allows you to have unique
-rules, based on cluster data, return different values.
+### SdkKey
+
+**Path:** `.spec.sdkKey`
+
+**Description:** An SDK key is necessary in order to communicate with LaunchDarkly.
+Use `sdkKey` when you want to use a plain text LaunchDarkly SDK key in your FeatureFlagSetLD.
+For a more secure implementation, use [sdkKeyRef](#sdkKeyRef).
+
+**Schema:**
+
+```yaml
+sdkKey:
+  type: string
+```
+
+### SdkKeyRef
+
+**Path:** `.spec.sdkKeyRef`
+
+**Description:** An SDK key is necessary in order to communicate with LaunchDarkly.
+Use `sdkKeyRef` when you want to use a secret reference to your LaunchDarkly SDK
+key for your FeatureFlagSetLD.
+
+**Schema:**
+
+```yaml
+sdkKeyRef:
+  type: object
+  required: [valueFrom]
+  properties:
+    valueFrom:
+      type: object
+      required: [secretKeyRef]
+      properties:
+        secretKeyRef:
+          type: object
+          required: [name, key]
+          properties:
+            name:
+              type: string
+            key:
+              type: string
+            namespace:
+              type: string
+```
+
+### IdentityRef
+
+**Path:** `.spec.identityRef`
+
+**Description:** Specifying the identityRef attribute will give the FeatureFlagSetLD
+cluster specific data to send to LaunchDarkly for rule evaluation. This allows you
+to have unique rules, based on cluster data, return different values.
 eg. cluster data `type: dev` could match rules such as
 `IF 'type' IS ONE OF 'dev' SERVE 'some new feature'`
 
-- Schema:
-  - oneOf:
-    - type: string
-    - type: array
-      - items:
-        - oneOf:
-          - type: string
-          - type: object
-            - required: [valueFrom.configMapKeyRef]
-
-eg.
+**Schema:**
 
 ```yaml
-        identity: "<ConfigMap name>"
-
-        identity:
-        - "<ConfigMap name>"
-
-        identity:
-        - valueFrom:
-            configMapKeyRef:
-              name: "<ConfigMap name>" # required
-              key: "<key within ConfigMap>" # optional
-              namespace: "<ConfigMap namespace>" # optional
-              type: "json" # optional
+identityRef:
+  type: object
+  anyOf:
+    - required: [envFrom]
+    - required: [env]
+  properties:
+    envFrom:
+      type: array
+      ...
+    env:
+      type: array
+      ...
 ```
 
-#### Identity valueFrom
+#### EnvFrom
 
-`.spec.identity[].valueFrom.configMapKeyRef`
+**Path:** `.spec.identityRef.envFrom`
 
-If you need to specify a ConfigMap as the identity, but need to specify extra
-lookup details, this is how you would do it.
+**Description:** use envFrom when you want to load a whole resource. The keys from
+the resource will become the keys used in the identity object. Note any
+CRD with a high level `.data` section (like ConfigMaps and Secrets have), can be
+loaded by using genericMapRef.
 
-- Schema:
-  - type: object
-    - required: [name]
-    - optional: [namespace, key, type]
+**Schema:**
 
-Optional field details:
+```yaml
+envFrom:
+  type: array
+  items:
+    type: object
+    oneOf:
+      - required: [configMapRef]
+      - required: [secretMapRef]
+      - required: [genericMapRef]
+    properties:
+      optional:
+        type: boolean
+      configMapRef:
+        type: object
+        required: [name]
+        properties:
+          name:
+            type: string
+          namespace:
+            type: string
+      secretMapRef:
+        type: object
+        required: [name]
+        properties:
+          name:
+            type: string
+          namespace:
+            type: string
+      genericMapRef:
+        type: object
+        required: [apiVersion, kind, name]
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          name:
+            type: string
+          namespace:
+            type: string
+```
 
-- namespace:
-  - Default: `this.namespace`
-  - Usage: specified specific namespace to lookup ConfigMap from
-- key
-  - Default: `undefined`
-  - Usage: specify single key from ConfigMap to use in identity. if left undefined,
-  entire ConfigMap will be part of identity.
-- type
-  - Default: string
-  - options: ['json']
-  - Usage: when you have a stringified JSON object in a ConfigMap that you want
-  to use as your identity, specifying this will parse the JSON and use all the items
-  in the JSON as part of the identity.
+#### Env
 
-#### Identity-Key
+**Path:** `.spec.identityRef.env`
 
-`.spec.identity-key`
+**Description:** use env when you want to load specific values from a resource.
+Note any CRD with a high level `.data` section (like ConfigMaps
+and Secrets have), can be loaded by using genericKeyRef.
 
-If you need to specify a specific key to use as the user key in LaunchDarkly, this
-allows you to identify the key in the identity ConfigMap to use.
+**Schema:**
 
-- Schema:
-  - type: string
-  - default: ffsld's namespace uid
+```yaml
+env:
+  type: array
+  items:
+    type: object
+    allOf:
+      - required: [name]
+      - # all array items should be oneOf ['value', 'valueFrom']
+        oneOf:
+          - required: [value]
+            # if 'value', neither 'optional' nor 'default' may be used
+            not:
+              anyOf:
+                - required: [default]
+                - required: [optional]
+          - required: [valueFrom]
+            # if 'valueFrom', you must define oneOf:
+            oneOf:
+              - # neither 'optional' nor 'default' is used
+                not:
+                  anyOf:
+                    - required: [default]
+                    - required: [optional]
+              - # 'optional' is used by itself
+                required: [optional]
+                not:
+                  required: [default]
+              - # 'optional' and 'default' are used together IFF optional == true
+                required: [optional, default]
+                properties:
+                  optional:
+                    enum: [true]
+    properties:
+      optional:
+        type: boolean
+      default:
+        x-kubernetes-int-or-string: true
+      name:
+        type: string
+      value:
+        x-kubernetes-int-or-string: true
+      valueFrom:
+        type: object
+        oneOf:
+          - required: [configMapKeyRef]
+          - required: [secretKeyRef]
+          - required: [genericKeyRef]
+        properties:
+          configMapKeyRef:
+            type: object
+            required: [name, key]
+            properties:
+              name:
+                type: string
+              key:
+                type: string
+              namespace:
+                type: string
+              type:
+                type: string
+                enum: [number, boolean, json]
+          secretKeyRef:
+            type: object
+            required: [name, key]
+            properties:
+              name:
+                type: string
+              key:
+                type: string
+              namespace:
+                type: string
+              type:
+                type: string
+                enum: [number, boolean, json]
+          genericKeyRef:
+            type: object
+            required: [apiVersion, kind, name, key]
+            properties:
+              apiVersion:
+                type: string
+              kind:
+                type: string
+              name:
+                type: string
+              key:
+                type: string
+              namespace:
+                type: string
+              type:
+                type: string
+                enum: [number, boolean, json]
+```
+
+### IdentityKey
+
+**Path:** `.spec.identityKey`
+
+**Description:** If you need to specify a specific key to use as the user key in
+LaunchDarkly, this allows you to identify the key to use.
+
+**Schema:**
+
+```yaml
+identityKey:
+  type: string
+```
+
+**Default:** The `uid` of the namespace the resource is deployed in.
 
 ### Managed Resource Labels
 

@@ -15,10 +15,10 @@
  */
 
 const objectPath = require('object-path');
-const LaunchDarkly = require('ldclient-node');
-const { Watchman } = require('@razee/kubernetes-util');
+const LaunchDarkly = require('launchdarkly-node-server-sdk');
+const hash = require('object-hash');
 
-const { BaseController } = require('@razee/razeedeploy-core');
+const { BaseController, FetchEnvs } = require('@razee/razeedeploy-core');
 
 
 const clients = {};
@@ -30,34 +30,21 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async added() {
-    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
-    if (typeof sdkkeyRef == 'object') {
-      let secretName = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.name');
-      let secretNamespace = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.namespace', this.namespace);
-      let secretKey = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.key');
-      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
-    } else {
-      this._sdkkey = sdkkeyRef;
-    }
-    if (!this._sdkkey) {
-      throw Error('spec.sdk-key must be defined');
-    }
-    let sdkkey = this._sdkkey;
+    this._instanceUid = objectPath.get(this.data, ['object', 'metadata', 'uid']);
 
-    let client;
-    if (clients[sdkkey]) {
-      client = objectPath.get(clients, [sdkkey, 'client']);
-    } else {
+    let sdkkey = await this._getSdkKey();
+    this._sdkkeyHash = hash(sdkkey);
+
+    let client = objectPath.get(clients, [sdkkey, 'client']);
+    if (client === undefined) {
       client = LaunchDarkly.init(sdkkey);
       await client.waitForInitialization();
       objectPath.set(clients, [sdkkey, 'client'], client);
     }
-    if (!objectPath.has(clients, [sdkkey, 'connections', this.namespace, this.name])) {
-      objectPath.set(clients, [sdkkey, 'connections', this.namespace, this.name], {});
-    }
+    objectPath.set(clients, [sdkkey, 'instances', this._instanceUid], true);
 
     let identity = await this.assembleIdentity();
-    let identityKey = objectPath.get(this.data, ['object', 'spec', 'identity-key']);
+    let identityKey = objectPath.get(this.data, ['object', 'spec', 'identityKey']) || objectPath.get(this.data, ['object', 'spec', 'identity-key']);
 
     let userID = objectPath.get(identity, [identityKey]);
     if (!userID) {
@@ -76,7 +63,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     let patchObject = {
       metadata: {
         labels: {
-          client: sdkkey
+          client: this._sdkkeyHash
         }
       },
       data: variation.allValues()
@@ -87,7 +74,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     if (!objectPath.get(clients, [sdkkey, 'watching'], false)) {
       client.on('update', async () => {
         try {
-          let res = await this.kubeResourceMeta.get(undefined, undefined, { qs: { labelSelector: `client=${sdkkey}` } });
+          let res = await this.kubeResourceMeta.get(undefined, undefined, { qs: { labelSelector: `client=${this._sdkkeyHash}` } });
           await Promise.all(res.items.map(async i => {
             let patchObject = {
               status: {
@@ -96,7 +83,8 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
             };
             let name = objectPath.get(i, 'metadata.name');
             let namespace = objectPath.get(i, 'metadata.namespace');
-            return await this.kubeResourceMeta.mergePatch(name, namespace, patchObject, { status: true });
+            let res = await this.kubeResourceMeta.mergePatch(name, namespace, patchObject, { status: true });
+            return res;
           }));
         } catch (e) {
           this.errorHandler(e);
@@ -104,6 +92,33 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       });
       objectPath.set(clients, [sdkkey, 'watching'], true);
     }
+  }
+
+  async _getSdkKey() {
+    let sdkkeyAlpha1 = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
+    let sdkkeyStr = objectPath.get(this.data, ['object', 'spec', 'sdkKey']);
+    let sdkkeyRef = objectPath.get(this.data, ['object', 'spec', 'sdkKeyRef']);
+
+    if (typeof sdkkeyAlpha1 == 'string') {
+      this._sdkkey = sdkkeyAlpha1;
+    } else if (typeof sdkkeyStr == 'string') {
+      this._sdkkey = sdkkeyStr;
+    } else if (typeof sdkkeyAlpha1 == 'object') {
+      let secretName = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.name');
+      let secretNamespace = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.namespace', this.namespace);
+      let secretKey = objectPath.get(sdkkeyAlpha1, 'valueFrom.secretKeyRef.key');
+      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
+    } else if (typeof sdkkeyRef == 'object') {
+      let secretName = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.name');
+      let secretNamespace = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.namespace', this.namespace);
+      let secretKey = objectPath.get(sdkkeyRef, 'valueFrom.secretKeyRef.key');
+      this._sdkkey = await this._getSecretData(secretName, secretKey, secretNamespace);
+    }
+    if (!this._sdkkey) {
+      throw Error('A LaunchDarkly SDK Key must be defined');
+    }
+
+    return this._sdkkey;
   }
 
   async _getSecretData(name, key, ns) {
@@ -117,18 +132,16 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
 
   async assembleIdentity() {
     let identity = objectPath.get(this.data, ['object', 'spec', 'identity']);
-    let newWatches = [];
-    if (!identity) {
-      this.reconcileWatchman(newWatches);
+    let identityRef = objectPath.get(this.data, ['object', 'spec', 'identityRef']);
+    if (identityRef) {
+      let fetchEnvs = new FetchEnvs(this);
+      return fetchEnvs.get('spec.identityRef');
+    } else if (!identity) {
       return {};
     } else if (typeof identity == 'string') {
       let identityCM = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${this.namespace}/configmaps/${identity}`, json: true });
       let identityData = objectPath.get(identityCM, 'data', {});
 
-      this.createWatchman(identity);
-
-      newWatches.push(identity);
-      this.reconcileWatchman(newWatches);
       return identityData;
     } else if (Array.isArray(identity)) {
       let idObject = {};
@@ -180,55 +193,12 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
           if (identityData) {
             Object.assign(idObject, identityData);
           }
-
-          this.createWatchman(name);
-          newWatches.push(name);
         }
       }
-
-      this.reconcileWatchman(newWatches);
       return idObject;
     } else {
       return {};
     }
-  }
-
-  reconcileWatchman(newlyAddedWatchesKeys) {
-    let currentWatches = objectPath.get(clients, [this._sdkkey, 'connections', this.namespace, this.name], {});
-    let currentWatchesKeys = Object.keys(currentWatches);
-    currentWatchesKeys.map(key => {
-      if (!newlyAddedWatchesKeys.includes(key)) {
-        objectPath.get(clients, [this._sdkkey, 'connections', this.namespace, this.name, key], { end: () => {} }).end();
-        objectPath.del(clients, [this._sdkkey, 'connections', this.namespace, this.name, key]);
-      }
-    });
-
-  }
-
-  createWatchman(cmName) {
-    if (objectPath.has(clients, [this._sdkkey, 'connections', this.namespace, this.name, cmName])) {
-      return;
-    }
-    let opt = {
-      logger: this.log,
-      requestOptions: this.kubeResourceMeta.kubeApiConfig,
-      watchUri: `/api/v1/watch/namespaces/${this.namespace}/configmaps/${cmName}`
-    };
-    let wm = new Watchman(opt, (data) => {
-      if (data.type === 'MODIFIED') {
-        let patchObject = {
-          status: {
-            IdentityUpdateReceived: new Date(Date.now())
-          }
-        };
-        this.kubeResourceMeta.mergePatch(this.name, this.namespace, patchObject, { status: true });
-      } else if (data.type === 'DELETED') {
-        objectPath.get(clients, [this._sdkkey, 'connections', this.namespace, this.name, cmName], { end: () => {} }).end();
-        objectPath.del(clients, [this._sdkkey, 'connections', this.namespace, this.name, cmName]);
-      }
-    });
-    wm.watch();
-    objectPath.set(clients, [this._sdkkey, 'connections', this.namespace, this.name, cmName], wm);
   }
 
   dataToHash(resource) {
@@ -243,21 +213,16 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   }
 
   async finalizerCleanup() {
-    let key = objectPath.get(this.data, ['object', 'spec', 'sdk-key']);
+    let instanceUid = objectPath.get(this.data, ['object', 'metadata', 'uid']);
+    let sdkkey = await this._getSdkKey();
+    objectPath.del(clients, [sdkkey, 'instances', instanceUid]);
 
-    let identityWatches = objectPath.get(clients, [key, 'connections', this.namespace, this.name], {});
-    Object.keys(identityWatches).map(watch => identityWatches[watch].end());
-
-    objectPath.del(clients, [key, 'connections', this.namespace, this.name]);
-    if (Object.keys(objectPath.get(clients, [key, 'connections', this.namespace], {})).length == 0) {
-      objectPath.del(clients, [key, 'connections', this.namespace]);
-    }
-    if (Object.keys(objectPath.get(clients, [key, 'connections'], {})).length == 0) {
-      this.log.debug(`Closing client ${key}`);
-      let client = objectPath.get(clients, [key, 'client'], { close: () => {} });
+    if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
+      this.log.debug(`Closing client ${sdkkey}`);
+      let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => {} });
       client.close();
-      objectPath.del(clients, [key]);
-      this.log.debug(`Client closed successfully ${key}`);
+      objectPath.del(clients, [sdkkey]);
+      this.log.debug(`Client closed successfully ${sdkkey}`);
     }
   }
 

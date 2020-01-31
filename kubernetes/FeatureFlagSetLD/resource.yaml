@@ -58,7 +58,6 @@ items:
                 periodSeconds: 150
                 timeoutSeconds: 30
                 failureThreshold: 1
-
   - apiVersion: apiextensions.k8s.io/v1beta1
     kind: CustomResourceDefinition
     metadata:
@@ -76,34 +75,59 @@ items:
           # Each version can be enabled/disabled by Served flag.
           served: true
           # One and only one version must be marked as the storage version.
-          storage: true
-      # either Namespaced or Cluster
-      scope: Namespaced
-      names:
-        # plural name to be used in the URL: /apis/<group>/<version>/<plural>
-        plural: featureflagsetsld
-        # singular name to be used as an alias on the CLI and for display
-        singular: featureflagsetld
-        # kind is normally the CamelCased singular type. Your resource manifests use this.
-        kind: FeatureFlagSetLD
-        # shortNames allow shorter string to match your resource on the CLI
-        shortNames:
-          - ffsld
-      subresources:
-        # status enables the status subresource.
-        status: {}
-      validation:
-        # openAPIV3Schema is the schema for validating custom objects.
-        openAPIV3Schema:
-          properties:
-            spec:
+          storage: false
+          schema:
+            # openAPIV3Schema is the schema for validating custom objects.
+            openAPIV3Schema:
               type: object
-              required: [sdk-key]
+              required: [spec]
               properties:
-                sdk-key:
-                  oneOf:
-                    - type: string
-                    - type: object
+                spec:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                data:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                status:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+        - name: v1alpha2
+          # Each version can be enabled/disabled by Served flag.
+          served: true
+          # One and only one version must be marked as the storage version.
+          storage: true
+          schema:
+            # openAPIV3Schema is the schema for validating custom objects.
+            openAPIV3Schema:
+              type: object
+              required: [spec]
+              properties:
+                spec:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  allOf:
+                    - # you must define oneOf:
+                      oneOf:
+                        - required: [sdkKey]
+                        - required: [sdkKeyRef]
+                    - # you must define oneOf:
+                      oneOf:
+                        - # neither 'identityRef' nor 'identityKey' is used
+                          not:
+                            anyOf:
+                              - required: [identityRef]
+                              - required: [identityKey]
+                        - # 'identityRef' is used by itself
+                          required: [identityRef]
+                          not:
+                            required: [identityKey]
+                        - # 'identityRef' and 'identityKey' are used together
+                          required: [identityRef, identityKey]
+                  properties:
+                    sdkKey:
+                      type: string
+                    sdkKeyRef:
+                      type: object
                       required: [valueFrom]
                       properties:
                         valueFrom:
@@ -120,19 +144,99 @@ items:
                                   type: string
                                 namespace:
                                   type: string
-                identity:
-                  oneOf:
-                    - type: string
-                    - type: array
-                      items:
-                        oneOf:
-                          - type: string
-                          - type: object
-                            required: [valueFrom]
+                    identityKey:
+                      type: string
+                    identityRef:
+                      type: object
+                      anyOf:
+                        - required: [envFrom]
+                        - required: [env]
+                      properties:
+                        envFrom:
+                          type: array
+                          items:
+                            type: object
+                            oneOf:
+                              - required: [configMapRef]
+                              - required: [secretMapRef]
+                              - required: [genericMapRef]
                             properties:
+                              optional:
+                                type: boolean
+                              configMapRef:
+                                type: object
+                                required: [name]
+                                properties:
+                                  name:
+                                    type: string
+                                  namespace:
+                                    type: string
+                              secretMapRef:
+                                type: object
+                                required: [name]
+                                properties:
+                                  name:
+                                    type: string
+                                  namespace:
+                                    type: string
+                              genericMapRef:
+                                type: object
+                                required: [apiVersion, kind, name]
+                                properties:
+                                  apiVersion:
+                                    type: string
+                                  kind:
+                                    type: string
+                                  name:
+                                    type: string
+                                  namespace:
+                                    type: string
+                        env:
+                          type: array
+                          items:
+                            type: object
+                            allOf:
+                              - required: [name]
+                              - # all array items should be oneOf ['value', 'valueFrom']
+                                oneOf:
+                                  - required: [value]
+                                    # if 'value', neither 'optional' nor 'default' may be used
+                                    not:
+                                      anyOf:
+                                        - required: [default]
+                                        - required: [optional]
+                                  - required: [valueFrom]
+                                    # if 'valueFrom', you must define oneOf:
+                                    oneOf:
+                                      - # neither 'optional' nor 'default' is used
+                                        not:
+                                          anyOf:
+                                            - required: [default]
+                                            - required: [optional]
+                                      - # 'optional' is used by itself
+                                        required: [optional]
+                                        not:
+                                          required: [default]
+                                      - # 'optional' and 'default' are used together IFF optional == true
+                                        required: [optional, default]
+                                        properties:
+                                          optional:
+                                            enum: [true]
+                            properties:
+                              optional:
+                                type: boolean
+                              default:
+                                x-kubernetes-int-or-string: true
+                              name:
+                                type: string
+                              value:
+                                x-kubernetes-int-or-string: true
                               valueFrom:
                                 type: object
-                                required: [configMapKeyRef]
+                                oneOf:
+                                  - required: [configMapKeyRef]
+                                  - required: [secretKeyRef]
+                                  - required: [genericKeyRef]
                                 properties:
                                   configMapKeyRef:
                                     type: object
@@ -142,5 +246,61 @@ items:
                                         type: string
                                       key:
                                         type: string
+                                      namespace:
+                                        type: string
                                       type:
                                         type: string
+                                        enum: [number, boolean, json]
+                                  secretKeyRef:
+                                    type: object
+                                    required: [name, key]
+                                    properties:
+                                      name:
+                                        type: string
+                                      key:
+                                        type: string
+                                      namespace:
+                                        type: string
+                                      type:
+                                        type: string
+                                        enum: [number, boolean, json]
+                                  genericKeyRef:
+                                    type: object
+                                    required: [apiVersion, kind, name, key]
+                                    properties:
+                                      apiVersion:
+                                        type: string
+                                      kind:
+                                        type: string
+                                      name:
+                                        type: string
+                                      key:
+                                        type: string
+                                      namespace:
+                                        type: string
+                                      type:
+                                        type: string
+                                        enum: [number, boolean, json]
+                data:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                status:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+      # either Namespaced or Cluster
+      scope: Namespaced
+      names:
+        # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+        plural: featureflagsetsld
+        # singular name to be used as an alias on the CLI and for display
+        singular: featureflagsetld
+        # kind is normally the CamelCased singular type. Your resource manifests use this.
+        kind: FeatureFlagSetLD
+        # shortNames allow shorter string to match your resource on the CLI
+        shortNames:
+          - ffsld
+      subresources:
+        # status enables the status subresource.
+        status: {}
+      # prune unknown fields
+      preserveUnknownFields: false
