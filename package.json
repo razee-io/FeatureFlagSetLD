@@ -43,7 +43,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@razee/kubernetes-util": "0.0.7",
+    "@razee/kubernetes-util": "0.0.9",
     "@razee/razeedeploy-core": "^0.6.4",
     "bunyan": "^1.8.12",
     "express": "^4.17.1",
