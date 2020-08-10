@@ -4,8 +4,8 @@ metadata:
   name: featureflagsetld-controller-list
   annotations:
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
-    razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
-    version: "{{TRAVIS_COMMIT}}"
+    razee.io/commit-sha: "{{{TRAVIS_COMMIT}}}"
+    version: "{{{TRAVIS_COMMIT}}}"
 type: array
 items:
   - apiVersion: apps/v1
@@ -14,7 +14,8 @@ items:
       name: featureflagsetld-controller
       annotations:
         razee.io/git-repo: "{{{GIT_REMOTE}}}"
-        razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
+        razee.io/commit-sha: "{{{TRAVIS_COMMIT}}}"
+        version: "{{{TRAVIS_COMMIT}}}"
       labels:
         razee/watch-resource: "lite"
     spec:
@@ -32,8 +33,12 @@ items:
           name: featureflagsetld-controller
         spec:
           serviceAccountName: razeedeploy-sa
+          securityContext:
+            runAsUser: {{{NODE_USER_ID}}}
+            runAsGroup: {{{NODE_GROUP_ID}}}
+            fsGroup: {{{NODE_GROUP_ID}}}
           containers:
-            - image: "quay.io/razee/featureflagsetld:{{TRAVIS_TAG}}"
+            - image: "quay.io/razee/featureflagsetld:{{{TRAVIS_TAG}}}"
               resources:
                 limits:
                   memory: 200Mi
@@ -65,7 +70,7 @@ items:
       name: featureflagsetsld.deploy.razee.io
       annotations:
         razee.io/git-repo: "{{{GIT_REMOTE}}}"
-        razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
+        razee.io/commit-sha: "{{{TRAVIS_COMMIT}}}"
     spec:
       # group name to use for REST API: /apis/<group>/<version>
       group: deploy.razee.io
