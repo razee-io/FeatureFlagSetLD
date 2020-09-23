@@ -49,7 +49,7 @@
     "@razee/razeedeploy-core": "^0.10.1",
     "bunyan": "^1.8.14",
     "express": "^4.17.1",
-    "launchdarkly-node-server-sdk": "^5.13.3",
+    "launchdarkly-node-server-sdk": "^5.13.4",
     "object-path": "^0.11.4"
   },
   "devDependencies": {
