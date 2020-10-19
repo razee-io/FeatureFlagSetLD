@@ -50,7 +50,7 @@
     "bunyan": "^1.8.14",
     "express": "^4.17.1",
     "launchdarkly-node-server-sdk": "^5.13.4",
-    "object-path": "^0.11.4"
+    "object-path": "^0.11.5"
   },
   "devDependencies": {
     "chai": "^4.2.0",
