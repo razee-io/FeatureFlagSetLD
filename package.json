@@ -1,5 +1,5 @@
 {
-  "name": "FeatureFlagSetLD",
+  "name": "@razee/featureflagsetld",
   "version": "0.0.0-dev",
   "description": "Razee: component to pull feature flag values into a kubernetes environment",
   "main": "./src/index.js",
