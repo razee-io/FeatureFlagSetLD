@@ -14,6 +14,7 @@ script:
   - if [ -n "${TRAVIS_TAG}" ]; then docker tag quay.io/razee/featureflagsetld:${TRAVIS_COMMIT} quay.io/razee/featureflagsetld:${TRAVIS_TAG}; fi
   - docker images
   - ./build/process-template.sh kubernetes/FeatureFlagSetLD/resource.yaml >/tmp/resource.yaml
+  - if [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then npm version --no-git-tag-version "${TRAVIS_TAG}"; fi
 
 before_deploy:
   - docker login -u="${QUAY_ID}" -p="${QUAY_TOKEN}" quay.io
@@ -39,6 +40,13 @@ deploy:
     skip_cleanup: true
     api_key: "${GITHUB_TOKEN}"
     name: "${TRAVIS_TAG}"
+    on:
+      tags: true
+      condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+$
+  - provider: npm
+    email: "${NPMJS_EMAIL}"
+    api_key: "${NPMJS_API_KEY}"
+    skip_cleanup: true
     on:
       tags: true
       condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+$

@@ -38,4 +38,4 @@ WORKDIR /home/node
 
 COPY --chown=node --from=buildImg /home/node /home/node
 
-CMD ["npm", "start"]
+CMD ["./bin/featureflagsetld"]
