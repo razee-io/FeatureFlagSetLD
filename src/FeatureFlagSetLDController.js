@@ -214,15 +214,20 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
 
   async finalizerCleanup() {
     let instanceUid = objectPath.get(this.data, ['object', 'metadata', 'uid']);
-    let sdkkey = await this._getSdkKey();
-    objectPath.del(clients, [sdkkey, 'instances', instanceUid]);
+    try {
+      let sdkkey = await this._getSdkKey();
+      objectPath.del(clients, [sdkkey, 'instances', instanceUid]);
 
-    if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
-      this.log.debug(`Closing client ${sdkkey}`);
-      let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => {} });
-      client.close();
-      objectPath.del(clients, [sdkkey]);
-      this.log.debug(`Client closed successfully ${sdkkey}`);
+      if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
+        this.log.debug(`Closing client ${sdkkey}`);
+        let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => { } });
+        client.close();
+        objectPath.del(clients, [sdkkey]);
+        this.log.debug(`Client closed successfully ${sdkkey}`);
+      }
+    } catch (e) {
+      // TODO: Some error codes we should retry on. Need to figure out which codes those would be and throw an error here so that we do retry finalizer cleanup.
+      this.log.warn(`Failed to find valid sdkKey for '${this.name}' in ns '${this.namespace}, skipping so finalizer can be removed and resource deleted.`, e);
     }
   }
 
