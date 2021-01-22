@@ -217,11 +217,8 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     for (let i = 0; i < sdkKeys.length; i++) {
       const sdkKey = sdkKeys[i];
       const instanceUids = Object.keys(objectPath.get(clients, [sdkKey, 'instances']));
-      for (let j = 0; j < instanceUids.length; j++) {
-        const uid = instanceUids[j];
-        if (uid === instanceUid) {
-          return sdkKey;
-        }
+      if (instanceUids.indexOf(instanceUid) !== -1) {
+        return sdkKey;
       }
     }
   }
