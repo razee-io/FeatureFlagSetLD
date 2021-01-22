@@ -248,7 +248,6 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       objectPath.del(clients, [sdkkey]);
       this.log.debug(`Client closed successfully ${sdkkey}`);
     }
-
   }
 
 };
