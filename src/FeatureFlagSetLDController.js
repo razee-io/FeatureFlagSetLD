@@ -243,7 +243,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
 
     if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
       this.log.debug(`Closing client ${sdkkey}`);
-      let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => { } });
+      const client = objectPath.get(clients, [sdkkey, 'client'], { close: () => { } });
       client.close();
       objectPath.del(clients, [sdkkey]);
       this.log.debug(`Client closed successfully ${sdkkey}`);
