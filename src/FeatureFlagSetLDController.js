@@ -235,7 +235,7 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
       this.log.warn(`Failed to get sdk key from kube-api during ${this.name}'s finalizer cleanup. resorting to table lookup.`, e);
       sdkkey = this._getSdkKeyFromDict(instanceUid);
       if (sdkkey === undefined) {
-        this.log.debug('No sdkkey found in table lookup, skipping cleanup since sdkkey isnt associated with a client.');
+        this.log.debug('No sdkkey found in table lookup, skipping cleanup since sdkkey is not associated with a client.');
         return;
       }
     }
