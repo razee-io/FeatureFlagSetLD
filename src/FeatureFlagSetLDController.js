@@ -212,23 +212,43 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     };
   }
 
+  _getSdkKeyFromDict(instanceUid) {
+    const sdkKeys = Object.keys(clients);
+    for (let i = 0; i < sdkKeys.length; i++) {
+      const sdkKey = sdkKeys[i];
+      const instanceUids = Object.keys(objectPath.get(clients, [sdkKey, 'instances']));
+      for (let j = 0; j < instanceUids.length; j++) {
+        const uid = instanceUids[j];
+        if (uid === instanceUid) {
+          return sdkKey;
+        }
+      }
+    }
+  }
+
   async finalizerCleanup() {
     let instanceUid = objectPath.get(this.data, ['object', 'metadata', 'uid']);
+    let sdkkey;
     try {
-      let sdkkey = await this._getSdkKey();
-      objectPath.del(clients, [sdkkey, 'instances', instanceUid]);
-
-      if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
-        this.log.debug(`Closing client ${sdkkey}`);
-        let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => { } });
-        client.close();
-        objectPath.del(clients, [sdkkey]);
-        this.log.debug(`Client closed successfully ${sdkkey}`);
-      }
+      sdkkey = await this._getSdkKey();
     } catch (e) {
-      // TODO: Some error codes we should retry on. Need to figure out which codes those would be and throw an error here so that we do retry finalizer cleanup.
-      this.log.warn(`Failed to find valid sdkKey for '${this.name}' in ns '${this.namespace}, skipping so finalizer can be removed and resource deleted.`, e);
+      this.log.warn(`Failed to get sdk key from kube-api during ${this.name}'s finalizer cleanup. resorting to table lookup.`, e);
+      sdkkey = this._getSdkKeyFromDict(instanceUid);
+      if (sdkkey === undefined) {
+        this.log.debug('No sdkkey found in table lookup, skipping cleanup since sdkkey isnt associated with a client.');
+        return;
+      }
     }
+    objectPath.del(clients, [sdkkey, 'instances', instanceUid]);
+
+    if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
+      this.log.debug(`Closing client ${sdkkey}`);
+      let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => { } });
+      client.close();
+      objectPath.del(clients, [sdkkey]);
+      this.log.debug(`Client closed successfully ${sdkkey}`);
+    }
+
   }
 
 };
