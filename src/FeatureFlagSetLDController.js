@@ -212,14 +212,35 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     };
   }
 
+  _getSdkKeyFromDict(instanceUid) {
+    const sdkKeys = Object.keys(clients);
+    for (let i = 0; i < sdkKeys.length; i++) {
+      const sdkKey = sdkKeys[i];
+      const instanceUids = Object.keys(objectPath.get(clients, [sdkKey, 'instances']));
+      if (instanceUids.indexOf(instanceUid) !== -1) {
+        return sdkKey;
+      }
+    }
+  }
+
   async finalizerCleanup() {
     let instanceUid = objectPath.get(this.data, ['object', 'metadata', 'uid']);
-    let sdkkey = await this._getSdkKey();
+    let sdkkey;
+    try {
+      sdkkey = await this._getSdkKey();
+    } catch (e) {
+      this.log.warn(`Failed to get sdk key from kube-api during ${this.name}'s finalizer cleanup. resorting to table lookup.`, e);
+      sdkkey = this._getSdkKeyFromDict(instanceUid);
+      if (sdkkey === undefined) {
+        this.log.debug('No sdkkey found in table lookup, skipping cleanup since sdkkey is not associated with a client.');
+        return;
+      }
+    }
     objectPath.del(clients, [sdkkey, 'instances', instanceUid]);
 
     if (Object.keys(objectPath.get(clients, [sdkkey, 'instances'], {})).length == 0) {
       this.log.debug(`Closing client ${sdkkey}`);
-      let client = objectPath.get(clients, [sdkkey, 'client'], { close: () => {} });
+      const client = objectPath.get(clients, [sdkkey, 'client'], { close: () => { } });
       client.close();
       objectPath.del(clients, [sdkkey]);
       this.log.debug(`Client closed successfully ${sdkkey}`);
