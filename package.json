@@ -48,25 +48,25 @@
   "dependencies": {
     "@razee/kubernetes-util": "^0.2.0",
     "@razee/razeedeploy-core": "^0.11.3",
-    "bunyan": "^1.8.14",
+    "bunyan": "^1.8.15",
     "express": "^4.17.1",
-    "launchdarkly-node-server-sdk": "^5.13.4",
+    "launchdarkly-node-server-sdk": "^5.14.2",
     "object-path": "^0.11.5"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
+    "chai": "^4.3.0",
     "dockerlint": "^0.3.9",
-    "eslint": "^7.15.0",
+    "eslint": "^7.20.0",
     "jsonlint": "^1.6.3",
     "markdownlint-cli": "^0.26.0",
-    "mocha": "^8.2.1",
-    "nock": "^13.0.5",
-    "npm-check-updates": "^11.1.1",
+    "mocha": "^8.3.0",
+    "nock": "^13.0.7",
+    "npm-check-updates": "^11.1.4",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
     "rewire": "^5.0.0",
     "shellcheck": "^0.4.4",
-    "sinon": "^9.2.2",
+    "sinon": "^9.2.4",
     "yaml-lint": "^1.2.4"
   }
 }
