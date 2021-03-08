@@ -58,7 +58,7 @@
     "dockerlint": "^0.3.9",
     "eslint": "^7.20.0",
     "jsonlint": "^1.6.3",
-    "markdownlint-cli": "^0.26.0",
+    "markdownlint-cli": "^0.27.1",
     "mocha": "^8.3.0",
     "nock": "^13.0.7",
     "npm-check-updates": "^11.1.4",
