@@ -47,6 +47,10 @@ items:
                   memory: 75Mi
                   cpu: 40m
               env:
+                - name: USER_AGENT_NAME
+                  value:  razee-io/featureflagsetld
+                - name: USER_AGENT_VERSION
+                  value:  "{{{TRAVIS_TAG}}}"
                 - name: CRD_WATCH_TIMEOUT_SECONDS
                   valueFrom:
                     configMapKeyRef:
