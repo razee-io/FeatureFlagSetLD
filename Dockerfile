@@ -19,7 +19,7 @@
 FROM node:lts-alpine as buildImg
 
 RUN apk update
-RUN apk --no-cache add python make curl
+RUN apk --no-cache add python3 make curl
 
 USER node
 WORKDIR /home/node
