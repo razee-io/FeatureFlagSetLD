@@ -75,6 +75,8 @@ items:
       annotations:
         razee.io/git-repo: "{{{GIT_REMOTE}}}"
         razee.io/commit-sha: "{{{TRAVIS_COMMIT}}}"
+      labels:
+        deploy.razee.io/Reconcile: "false"
     spec:
       # group name to use for REST API: /apis/<group>/<version>
       group: deploy.razee.io
