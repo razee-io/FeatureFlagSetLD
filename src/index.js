@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-const { EventHandler, KubeClass, KubeApiConfig } = require('@razee/kubernetes-util');
-const kubeApiConfig = KubeApiConfig();
+const { EventHandler, KubeClass } = require('@razee/kubernetes-util');
 
 const ControllerString = 'FeatureFlagSetLD';
 const Controller = require(`./${ControllerString}Controller`);
@@ -31,8 +30,7 @@ async function createNewEventHandler(kc) {
       kubeClass: kc,
       logger: log,
       requestOptions: { qs: { timeoutSeconds: process.env.CRD_WATCH_TIMEOUT_SECONDS || 300 } },
-      livenessInterval: true,
-      restartPod: process.env.CONTROLLER_RESTART_HOURS || 24
+      livenessInterval: true
     };
     result = new EventHandler(params);
   } else {
@@ -45,7 +43,7 @@ async function main() {
   let kc;
   try {
     log.info(`Running ${ControllerString}Controller.`);
-    kc = new KubeClass(kubeApiConfig);
+    kc = new KubeClass();
   } catch (e) {
     log.error(e, 'Failed to get KubeClass.');
   }

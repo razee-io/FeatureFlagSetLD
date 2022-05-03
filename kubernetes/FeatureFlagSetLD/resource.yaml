@@ -67,7 +67,7 @@ items:
                 periodSeconds: 150
                 timeoutSeconds: 30
                 failureThreshold: 1
-  - apiVersion: apiextensions.k8s.io/v1beta1
+  - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
       # name must match the spec fields below, and be in the form: <plural>.<group>
@@ -80,6 +80,18 @@ items:
     spec:
       # group name to use for REST API: /apis/<group>/<version>
       group: deploy.razee.io
+      # either Namespaced or Cluster
+      scope: Namespaced
+      names:
+        # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+        plural: featureflagsetsld
+        # singular name to be used as an alias on the CLI and for display
+        singular: featureflagsetld
+        # kind is normally the CamelCased singular type. Your resource manifests use this.
+        kind: FeatureFlagSetLD
+        # shortNames allow shorter string to match your resource on the CLI
+        shortNames:
+          - ffsld
       # list of versions supported by this CustomResourceDefinition
       versions:
         - name: v1alpha1
@@ -87,6 +99,9 @@ items:
           served: true
           # One and only one version must be marked as the storage version.
           storage: false
+          subresources:
+            # status enables the status subresource.
+            status: {}
           schema:
             # openAPIV3Schema is the schema for validating custom objects.
             openAPIV3Schema:
@@ -107,6 +122,9 @@ items:
           served: true
           # One and only one version must be marked as the storage version.
           storage: true
+          subresources:
+            # status enables the status subresource.
+            status: {}
           schema:
             # openAPIV3Schema is the schema for validating custom objects.
             openAPIV3Schema:
@@ -298,20 +316,3 @@ items:
                 status:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
-      # either Namespaced or Cluster
-      scope: Namespaced
-      names:
-        # plural name to be used in the URL: /apis/<group>/<version>/<plural>
-        plural: featureflagsetsld
-        # singular name to be used as an alias on the CLI and for display
-        singular: featureflagsetld
-        # kind is normally the CamelCased singular type. Your resource manifests use this.
-        kind: FeatureFlagSetLD
-        # shortNames allow shorter string to match your resource on the CLI
-        shortNames:
-          - ffsld
-      subresources:
-        # status enables the status subresource.
-        status: {}
-      # prune unknown fields
-      preserveUnknownFields: false
