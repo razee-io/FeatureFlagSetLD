@@ -94,7 +94,7 @@ spec:
 
 **Description:** An SDK key is necessary in order to communicate with LaunchDarkly.
 Use `sdkKey` when you want to use a plain text LaunchDarkly SDK key in your FeatureFlagSetLD.
-For a more secure implementation, use [sdkKeyRef](#sdkKeyRef).
+For a more secure implementation, use [sdkKeyRef](#sdkkeyref).
 
 **Schema:**
 
