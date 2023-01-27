@@ -204,10 +204,11 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
   dataToHash(resource) {
     // Override if you have other data as important.
     // Changes to these sections allow modify event to proceed.
+    // Note: Updated `FeatureFlagUpdateReceived` timestamp without any change to related `spec` should not trigger `data-hash` update.
     return {
       labels: objectPath.get(resource, 'metadata.labels'),
       spec: objectPath.get(resource, 'spec'),
-      FeatureFlagUpdateReceived: objectPath.get(resource, 'status.FeatureFlagUpdateReceived'),
+      //FeatureFlagUpdateReceived: objectPath.get(resource, 'status.FeatureFlagUpdateReceived'),
       IdentityUpdateReceived: objectPath.get(resource, 'status.IdentityUpdateReceived')
     };
   }
