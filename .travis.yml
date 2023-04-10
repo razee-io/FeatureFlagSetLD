@@ -9,7 +9,7 @@ before_install:
 
 script:
   # Audit npm packages. Fail build whan a PR audit fails, otherwise report the vulnerability and proceed.
-  - if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then npx audit-ci --low; else npx audit-ci --low || true; fi
+  - if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then npx audit-ci --config audit-ci.json; else npx audit-ci --config audit-ci.json || true; fi
   - npm run lint
   - npm test
   - docker build --rm -t "quay.io/razee/featureflagsetld:${TRAVIS_COMMIT}" .
