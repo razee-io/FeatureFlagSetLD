@@ -165,7 +165,7 @@ identityRef:
 
 **Path:** `.spec.identityRef.envFrom`
 
-**Description:** use envFrom when you want to load a whole resource. The keys from
+**Description:** Use envFrom when you want to load a whole resource. The keys from
 the resource will become the keys used in the identity object. Note any
 CRD with a high level `.data` section (like ConfigMaps and Secrets have), can be
 loaded by using genericMapRef.
