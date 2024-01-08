@@ -46,10 +46,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@razee/kubernetes-util": "^1.1.13",
-    "@razee/razeedeploy-core": "^1.3.16",
+    "@razee/kubernetes-util": "^1.1.14",
+    "@razee/razeedeploy-core": "^1.3.17",
     "bunyan": "^1.8.15",
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "launchdarkly-node-server-sdk": "^6.4.2",
     "object-path": "^0.11.8"
   },
