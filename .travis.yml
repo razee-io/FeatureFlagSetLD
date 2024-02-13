@@ -13,6 +13,29 @@ before_install:
   - export WS_PRODUCTNAME=${WS_PRODUCTNAME}
   - export WS_PROJECTNAME=FeatureFlagSetLD
   - export WS_WSS_URL=https://ibmets.whitesourcesoftware.com/agent
+  - |
+    kubelint() {
+      DEPLOYMENT_DIR="${1}"
+      KUBELINT_CONFIG="${2}"
+      KUBELINT_VERSION="${3}"
+      if [[ -z "${DEPLOYMENT_DIR}" ]]; then
+        echo "usage: 'kubelint DEPLOYMENT_DIR KUBELINT_CONFIG KUBELINT_VERSION'"
+        exit 1
+      fi
+      [[ -z "${KUBELINT_VERSION}" ]] && KUBELINT_VERSION=latest
+      [[ -z "${KUBELINT_CONFIG}" ]] && KUBELINT_CONFIG=kubelint-config.yaml
+      mkdir -p "${HOME}/bin"
+      curl -sL -o "${HOME}/bin/kube-linter" "https://github.com/stackrox/kube-linter/releases/${KUBELINT_VERSION}/download/kube-linter-linux"
+      chmod +x "${HOME}/bin/kube-linter"
+      if [[ "$FAIL_ON_INVALID_RESOURCE" = "false" ]]; then
+        kube-linter lint -v --fail-if-no-objects-found "${DEPLOYMENT_DIR}" --config "${KUBELINT_CONFIG}"
+      else
+        kube-linter lint -v --fail-on-invalid-resource --fail-if-no-objects-found "${DEPLOYMENT_DIR}" --config "${KUBELINT_CONFIG}"
+      fi
+    }
+    mkdir -p "${HOME}/bin"
+    echo -e "#!/bin/bash\n$(declare -f kubelint)\nkubelint \"\$@\"" > "${HOME}/bin/kubelint"
+    chmod +x "${HOME}/bin/kubelint"
 
 script:
   # Audit npm packages. Fail build whan a PR audit fails, otherwise report the vulnerability and proceed.
@@ -23,6 +46,7 @@ script:
   - if [ -n "${TRAVIS_TAG}" ]; then docker tag quay.io/razee/featureflagsetld:${TRAVIS_COMMIT} quay.io/razee/featureflagsetld:${TRAVIS_TAG}; fi
   - docker images
   - ./build/process-template.sh kubernetes/FeatureFlagSetLD/resource.yaml >/tmp/resource.yaml
+  - kubelint /tmp/resource.yaml
   - if [[ "${TRAVIS_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then npm version --no-git-tag-version "${TRAVIS_TAG}"; fi
   # Perform UA scan on non-PR builds
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then curl -LJO https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar; java -jar wss-unified-agent.jar -d . || echo "UA Scan Error occurred"; fi
