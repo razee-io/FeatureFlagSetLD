@@ -46,19 +46,19 @@ module.exports = class FeatureFlagSetLDController extends BaseController {
     let identity = await this.assembleIdentity();
     let identityKey = objectPath.get(this.data, ['object', 'spec', 'identityKey']) || objectPath.get(this.data, ['object', 'spec', 'identity-key']);
 
-    let userID = objectPath.get(identity, [identityKey]);
-    if (!userID) {
+    let ldContextKey = objectPath.get(identity, [identityKey]);
+    if (!ldContextKey) {
       if (identityKey) {
         let msg = `Key '${identityKey}' not found in identity ConfigMap.. defaulting to Namespace UID.`;
         this.log.warn(msg);
         this.updateRazeeLogs('warn', { controller: 'FeatureFlagSetLD', warn: msg });
       }
       let namespace = await this.kubeResourceMeta.request({ uri: `/api/v1/namespaces/${this.namespace}`, json: true });
-      userID = objectPath.get(namespace, 'metadata.uid');
+      ldContextKey = objectPath.get(namespace, 'metadata.uid');
     }
-    let user = { key: userID, custom: identity };
-    client.identify(user);
-    let variation = await client.allFlagsState(user);
+    const ldContext = { kind: 'user', key: ldContextKey, ...identity };
+    client.identify(ldContext);
+    let variation = await client.allFlagsState(ldContext);
 
     let patchObject = {
       metadata: {
