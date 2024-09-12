@@ -49,7 +49,6 @@
     "@razee/kubernetes-util": "^1.1.17",
     "@razee/razeedeploy-core": "^1.3.22",
     "bunyan": "^1.8.15",
-    "express": "^4.21.0",
     "launchdarkly-node-server-sdk": "^7.0.4",
     "object-path": "^0.11.8"
   },
