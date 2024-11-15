@@ -37,6 +37,11 @@ before_deploy:
   - docker login -u="${QUAY_ID}" -p="${QUAY_TOKEN}" quay.io
   # Use npm v9 for deployments (v10 has problems with authentication with api_key)
   - npm install -g npm@9
+  # Workaround ruby gem problem https://travis-ci.community/t/deployments-are-failing-due-to-uri-dependency/14375/4
+  - yes | gem update --system --force
+  - gem install bundler
+  - gem install uri
+  - gem install logger
 
 deploy:
   # Deploy alpha builds
